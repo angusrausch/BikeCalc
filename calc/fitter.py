@@ -3,7 +3,7 @@ import math
 import threading
 import queue
 import concurrent.futures
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 #python -m auto_py_to_exe
 
     
@@ -126,6 +126,8 @@ def processing(fit_file, crank):
     maxTorque = torqueFinder(recordArray)
 
     date = recordArray[0]['timestamp']
+    date = date + timedelta(hours=10)
+
     timeDelta = recordArray[len(recordArray) - 1]['timestamp'] - recordArray[0]['timestamp']
     distance = round(recordArray[len(recordArray) - 1]['distance'] / 1000, 1)
     altGain = recordArray[len(recordArray) - 1]['ascent']
