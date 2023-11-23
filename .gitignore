@@ -1,5 +1,5 @@
-# Logs and databases #
-######################
-*.log
-*.sql
-*.sqlite
+# Ignore macOS .DS_Store files
+.DS_Store
+
+# Ignore SQLite database file
+db.sqlite3
