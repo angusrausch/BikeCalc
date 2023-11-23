@@ -1,0 +1,36 @@
+{% include "calc/head.html" %} 
+{% load static %}
+{% if user.is_authenticated %}
+<!DOCTYPE html>
+
+<a href="/calc/profile">Back</a>
+<p>Creating blog post as {{user.first_name}} {{user.last_name}} on {{date}}</p>
+<form method="post">
+    {% csrf_token %}
+{% if confirmation == "1" %}
+<p>Title: </p><input type="text" name="title_input", value="{{title}}"><br>
+<p>Body: </p><textarea name="text_body" rows="10" cols="50">{{body}}</textarea><br>
+{% else %}
+<p>Title: </p><input readonly type="text" name="title_input", value="{{title}}"><br>
+<p>Body: </p><textarea readonly name="text_body" rows="10" cols="50">{{body}}</textarea><br>
+<button type="submit" name="submit" value="3">Edit</button>
+{% endif %}
+<button type="submit" name="submit" value={{confirmation}}>HIT ME</button>
+</form>
+
+
+
+<br><br><br>
+<body>
+    <h2>Previous Posts</h2>
+    {% for post in posts %}
+    <div style="background-color: lightgray; padding: 5px; width: 60%; margin-left: 10px;">
+        <h3>{{post.title}}</h3>
+        <body>{{post.body}}</body><br>
+        <small>{{post.user__first_name}} - {{post.date_field}}</small>
+    </div>
+    <br>
+    {% endfor %}
+</body>
+
+{% endif %}

@@ -1,0 +1,134 @@
+{% include "calc/head.html" %} 
+{% load static %}
+
+
+{% if user.is_authenticated %}
+
+    <div class="main_div">
+        <body>
+            <h2 style="text-align: center;">
+                Welcome, {{ user.first_name }}!
+            </h2>
+            <small>
+                Email: {{ user.email }}<br>
+                Full Name: {{user.first_name}} {{user.last_name}}
+            </small>
+            <p>
+                You are currently logged in as
+                {% if user.is_staff %}
+                    {% if user.is_superuser %}
+                        admin.
+                    {% else %}
+                        staff.
+                    {% endif %}
+                {% else %}
+                    user.
+                {% endif %}
+            </p>
+            {% if user.is_staff %}
+                <div style="border: solid; padding: 3px;">
+                    Staff Options
+                    <div>
+                        Tables:<br>
+                        <a style="color: black;" href="{% url 'table_view' table_name='user_feedback' %}">Feedback</a>
+                        <a style="color: black;" href="{% url 'table_view' table_name='tyres' %}">Tyres</a>
+                        <a style="color: black;" href="{% url 'table_view' table_name='chainrings' %}">Chainrings</a>
+                        <a style="color: black;" href="{% url 'table_view' table_name='cassettes' %}">Cassettes</a>
+                        {% if user.is_superuser %}
+                            <a style="color: black;" href="{% url 'table_view' table_name='users' %}">Users</a>
+                        {% endif %}
+                    </div>
+                    <br><a href="/calc/createblog">Create Post</a>
+                </div>
+            {% endif %}
+            <br><br>
+            <div style="border: solid; padding: 3px;">
+                User Options
+                <div>
+                    {% if bikes %}
+                        <table>
+                            <tr>
+                                <th>Bike Name</th>
+                                <th>Chainring</th>
+                                <th>Cassette</th>
+                                <th>Tyre</th>
+                            </tr>
+                            {% for bike in bikes %}
+                            <tr>
+                                <td>{{bike.bike_name}}</td>
+                                <td>{{bike.Chainring__chainring_name}}</td>
+                                <td>{{bike.Cassette__cassette_name}}</td>
+                                <td>{{bike.tyre__tyre_size_name}}</td>
+                            </tr>
+                            {% endfor %}
+
+
+                        </table>
+                    {% endif %}
+                    
+                </div>
+                <br>
+                <form method="post" style="border: 0.5px solid;">
+                    {% csrf_token %}
+                    {% if new_bike %}
+                        Bike Name: <input type="text" name="bike_name"><br>
+                        <fieldset style="border: 0px none;">
+                            Tyre Selection:
+                            <select name="tyre_selection" id="tyreSelection">
+                                {% if not tyre_selection %}
+                                <option selected disabled="true">-- Tyre --</option>
+                                {% endif %}
+                                {% for result in tyre_size %}
+                                    <option value="{{ result.id }}">{{ result.tyre_size_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </fieldset>
+
+                        <fieldset style="border: 0px none; display: flex; align-items: center;">
+                            <label style="margin-right: 10px;">Chainring Selection:</label>
+                            <select name="chainring_selection">
+                                <option disabled="true" selected>-- Manual Input --</option>
+                                {% for result in chainrings %}
+                                <option value="{{ result.id }}">{{ result.chainring_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <br>
+                            <!-- <small> Manual Input:</small>
+                            <div style="margin-top: 10px;">
+                                <input type="text" name="manual_chainring">
+                            </div> -->
+                        </fieldset>
+
+                        <fieldset style="border: 0px none; display: flex; align-items: center;">
+                            <label style="margin-right: 10px;">Casseette Selection:</label>
+                            <select name="cassette_selection">
+                                <option disabled="true" selected>-- Manual Input --</option>
+                                {% for result in cassettes %}
+                                <option value="{{ result.id }}">{{ result.cassette_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <br>
+                            <!-- <small> Manual Input:</small>
+                            <div style="margin-top: 10px;">
+                                
+                                <input type="text" name="manual_cassette">
+                            </div> -->
+                        </fieldset>
+                        &emsp;&emsp;<button style="font-size: large;" type="submit" name="type" value="2">Create Bike</button>
+                        <br><p style="color: red;">&emsp;{{warning}}</p>
+                    {% else %}
+                    <button style="font-size: large;" type="submit" name="type" value="1">Create Bike</button>
+                    {% endif %}
+                </form>
+                
+            </div>
+
+
+        </body>
+    </div>
+
+
+{% else %}
+    <p>You are not logged in.</p>
+    <a href="{% url 'login' %}">Log In</a>
+{% endif %}

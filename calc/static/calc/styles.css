@@ -1,0 +1,145 @@
+h1 {
+    text-align: center;
+}
+
+body {
+    background-color: #363737;
+    margin: 0;
+}
+
+.heading {
+    font-size: medium;
+}
+
+header {
+    background-color: #00bbf2;
+    height: 100%;
+    padding-top: 10px;
+    padding: 6px;
+}
+
+.input_form {
+    background-color: whitesmoke;
+    padding-left: 3%;
+    padding-right: 3%;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    width: 80%;
+    margin: auto;
+    text-align: center;
+}
+
+.tyre_selection,
+.chainring_selection,
+.cassette_selection,
+.cadence_selection,
+.unit_selection {
+    width: min-content;
+    box-sizing: border-box;
+    display: inline-block;
+    margin-bottom: 10px; 
+    vertical-align: top;
+}
+
+.cassette_selection input{
+    font-size: 10px;
+    width: 200px;   
+}
+
+input {
+    text-align: center;
+}
+
+.final small {
+    font-size: 8px !important;
+}
+.final select {
+    font-size: 10px;
+}
+.submit{
+    font-size: larger;
+    background-color: orangered;
+}
+.speed_selections {
+    width: 30px
+}
+.speedcadencetable, .rollout_calculator {
+    background-color: whitesmoke;
+    width: fit-content;
+    margin: auto;
+}
+
+.speedcadencetable table, th, td {
+    border: 1px solid;
+    padding: 5px;
+}
+.highspeed, 
+.goodrollout {
+    background-color: lightgreen;
+}
+.mediumspeed, 
+.badrollout {
+    background-color: lightgray;
+}
+.lowspeed, 
+.illegalrollout {
+    background-color:#FF6961;
+}
+.rollout_select input{
+    width: 30px;
+}
+
+.main_page {
+    text-align: center;
+}
+.main_div {
+    background-color: whitesmoke;
+    width:80%;
+    margin: auto;
+    padding: 10px;
+}
+
+
+
+
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.main-header {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.heading {
+    margin: 0;
+}
+
+h1 {
+    margin: 0;
+}
+
+.main-nav {
+    display: flex;
+}
+
+.main-nav a {
+    text-decoration: none;
+    color: #333;
+    margin-right: 10px;
+}
+
+.user-info {
+    text-align: right;
+}
+
+.user-info a {
+    text-decoration: none;
+    color: #333;
+    margin-left: 10px;
+}

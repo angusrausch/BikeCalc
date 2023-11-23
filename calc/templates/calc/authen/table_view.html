@@ -1,0 +1,34 @@
+<a href="/calc/profile">Back</a>
+
+
+{% if name %}
+    <h2>{{name}}</h2>
+    <table>
+        <tr>
+            {% for column in columns %}
+                <th>{{column}}</th>
+            {% endfor %}
+        </tr>
+        <!-- {% for row in rows %}
+            <tr>
+                {% for item in row %}
+                    <td>{{item}}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %} -->
+        <form>
+        {% for row in rows %}
+        <tr>
+            <td><button type="submit" name="idnum" value="{{row.0}}">Edit</button></td>
+            {% for item in row.1 %}
+                <td>{{item}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        </form>
+
+
+    </table>
+
+
+{% endif %}

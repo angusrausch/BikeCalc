@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'calc/styles.css' %}">
+    <title>Angus' Calculator</title>
+</head>
+<body>
+        <header style="padding-top: 15px;">
+                <h1>Angus' Calculator</h1>
+        </header>
+    <header class="main-header">
+        <div class="heading">
+            
+            
+            <nav class="main-nav">
+                <a href="/calc/">Home</a>
+                <a href="/calc/speed">Speed</a>
+                <a href="/calc/ratios">Ratios</a>
+                <a href="/calc/rollout">Rollout</a>
+                <a href="/calc/fittool">FFV</a>
+                <a href="/calc/about">Blog</a>
+            </nav>
+        </div>
+
+        <div class="user-info">
+            {% if user.is_authenticated %}
+                <span><a href="/profile">{{ user.first_name }}</a></span>&emsp;<a href="{% url 'logout' prevpage=page %}">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+            {% endif %}
+        </div>
+    </header>
+    <br><br>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+{% include "calc/head.html" %} 
+
+
+<head>
+    <title>Speed Calculator</title>
+</head>
+
+
+
+
+<body>
+
+            
+    
+
+
+
+        <div class="input_form">
+        <form method="post">
+            {% csrf_token %}
+
+
+            {% if user.is_authenticated %}
+                <fieldset class="bike_selection">
+                    Bike Selection:
+                    <br>
+                    <select name="bike_selection">
+                        {% if not bike_selection %}
+                        <option selected disabled="true" value="">-- Bike --</option>
+                        {% endif %}
+                        {% for result in bikes %}
+                            <option value="{{ result.id }}">{{ result.bike_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br><small>
+                        You may select either a bike you have created or specific components
+                    </small>
+                </fieldset>
+            {% endif %}
+
+
+            <fieldset class="tyre_selection">
+                Tyre Selection:
+                <br>
+                <select name="tyre_selection" id="tyreSelection">
+                    {% if not tyre_selection %}
+                    <option selected disabled="true">-- Tyre --</option>
+                    {% endif %}
+                    {% for result in tyre_size %}
+                        <option value="{{ result.id }}">{{ result.tyre_size_name }}</option>
+                    {% endfor %}
+                </select>
+            </fieldset>
+            
+            <script>
+                var tyreSelectionValue = "{{ tyre_selection }}"; 
+                var select = document.getElementById("tyreSelection");
+                for (var i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value === tyreSelectionValue) {
+                        select.options[i].selected = true;
+                        break;
+                    }
+                }
+            </script>
+            
+            
+
+            <fieldset class="chainring_selection">
+                Chainring Selection: 
+                <br>
+                <select name="chainring_selection">
+                    <option>-- Manual Input --</option>
+                    {% for result in chainrings %}
+                    <option value ="{{result.id}}">{{result.chainring_name}}</option>
+                        {% endfor %}
+                </select>
+                <br><small>Manual Input:</small><br>
+                {% if chainring_selection%}
+                <input type="text" name="manual_chainring" value = {{chainring_selection}}>
+                {% else %}
+                <input type="text" name="manual_chainring">
+                {% endif %}
+            </fieldset>
+
+            <fieldset class="cassette_selection">
+                Cassette Selection:
+                <br>
+                <select name="cassette_selection">
+                    <option>-- Manual Input --</option>
+                    {% for result in cassettes %}
+                    <option value="{{result.id}}">{{result.cassette_name}}</option>
+                        {% endfor %}
+                </select>
+                <br><small>Manual Input:</small><br>
+                {% if cassette_selection %}
+                <input type="text" name="manual_cassette" value= {{cassette_selection}}>
+                {% else %}
+                <input type="text" name="manual_cassette">
+                {% endif %}
+            </fieldset>
+
+            <fieldset class="cadence_selection">
+                Cadence Selection:
+                <br>
+                Min:<input type="number" name="min_cadence" value="{{min_cadence}}"><br>
+                Max:<input type="number" name="max_cadence" value="{{max_cadence}}"><br>
+                Increment:<input type="number" name="increment" value="{{cadence_increment}}">
+            </fieldset>
+            
+            <fieldset class="final">
+                <small>Units</small>
+                <select name="units">
+                    <option value = "1" {% if  units_selection == 1 %} selected="true"{% endif %}>Kph</option>
+                    <option value="2" {% if  units_selection == 2 %} selected="true"{% endif %}>Mph</option>
+                </select>
+                <input type="submit" value="Submit" class="submit">
+                <small>
+                    Slow <input type="number" name="slow_selection" value="{{slow_selection}}" class="speed_selections">
+                    <!-- Medium <input type="number" name="medium_selection" value="{{medium_selection}}" class="speed_selections"> -->
+                    Fast <input type="number" name="fast_selection" value="{{fast_selection}}" class="speed_selections">
+                </small>
+            </fieldset>
+
+            
+            {% if warning %}
+            <h2>{{warning}}</h2>
+            {% endif %}
+    </form>
+    </div>
+
+    
+<br><br><br>
+    <div class="speedcadencetable">
+        {% if calculations %}
+        <table>
+            <tr>
+                <th>Ratios</th>
+                {% for cadence in cadence_sets %}
+                <th>{{cadence}}</th>
+                {% endfor %}
+                <th>Ratios</th>
+            </tr>
+            {% for gear in calculations %}
+                <tr>
+                    <th>{{ gear.ratio.0 }}/{{ gear.ratio.1 }}</th>
+                    {% for speed in gear.speed %}
+                        {% if speed > fast_selection %}
+                        <td class="highspeed">{{speed}}{{units}}</td>
+                        {% else %}
+                            {% if speed < fast_selection and speed > slow_selection %}
+                            <td class="mediumspeed">{{speed}}{{units}}</td>
+                            {% else %}
+                                {% if speed < slow_selection %}
+                                <td class="lowspeed">{{speed}}{{units}}</td>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    <th>{{ gear.ratio.0 }}/{{ gear.ratio.1 }}</th>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <th>Ratios</th>
+                    {% for cadence in cadence_sets %}
+                    <th>{{cadence}}</th>
+                    {% endfor %}
+                    <th>Ratios</th>
+                </tr>
+        </table>
+        {% endif %}
+    </div>
+    
+</body>

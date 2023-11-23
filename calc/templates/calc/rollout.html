@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+{% include "calc/head.html" %} 
+
+
+<head>
+    <title>Rollout Calculator</title>
+</head>
+
+
+
+
+<body>
+
+    
+        <div class="input_form">
+        <form method="post">
+            {% csrf_token %}
+
+            {% if user.is_authenticated %}
+                <fieldset class="bike_selection">
+                    Bike Selection:
+                    <br>
+                    <select name="bike_selection">
+                        {% if not bike_selection %}
+                        <option selected disabled="true" value="">-- Bike --</option>
+                        {% endif %}
+                        {% for result in bikes %}
+                            <option value="{{ result.id }}">{{ result.bike_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br><small>
+                        You may select either a bike you have created or specific components
+                    </small>
+                </fieldset>
+            {% endif %}
+            
+
+            <fieldset class="tyre_selection">
+                Tyre Selection:
+                <br>
+                <select name="tyre_selection" id="tyreSelection">
+                    {% if not tyre_selection %}
+                    <option selected disabled="true">-- Tyre --</option>
+                    {% endif %}
+                    {% for result in tyre_size %}
+                        <option value="{{ result.id }}">{{ result.tyre_size_name }}</option>
+                    {% endfor %}
+                </select>
+            </fieldset>
+            
+            <script>
+                var tyreSelectionValue = "{{ tyre_selection }}"; // Make sure this value is a string
+                var select = document.getElementById("tyreSelection");
+                for (var i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value === tyreSelectionValue) {
+                        select.options[i].selected = true;
+                        break;
+                    }
+                }
+            </script>
+            
+            
+
+            <fieldset class="chainring_selection">
+                Chainring Selection: 
+                <br>
+                <select name="chainring_selection">
+                    <option>-- Manual Input --</option>
+                    {% for result in chainrings_list %}
+                    <option value ="{{result.id}}">{{result.chainring_name}}</option>
+                        {% endfor %}
+                </select>
+                <br><small>Manual Input:</small><br>
+                {% if chainring_selection%}
+                <input type="text" name="manual_chainring" value = {{chainring_selection}}>
+                {% else %}
+                <input type="text" name="manual_chainring">
+                {% endif %}
+            </fieldset>
+
+            <fieldset class="cassette_selection">
+                Cassette Selection:
+                <br>
+                <select name="cassette_selection">
+                    <option>-- Manual Input --</option>
+                    {% for result in cassettes %}
+                    <option value="{{result.id}}">{{result.cassette_name}}</option>
+                        {% endfor %}
+                </select>
+                <br><small>Manual Input:</small><br>
+                {% if cassette_selection %}
+                <input type="text" name="manual_cassette" value= {{cassette_selection}}>
+                {% else %}
+                <input type="text" name="manual_cassette">
+                {% endif %}
+            </fieldset>
+
+            <fieldset class="rollout_select">
+                Rollout:<input type="number" name="rollout_selection" value="{{rollout_selection}}">
+                <select name="unit">
+                    <option value="1" {% if unit_selection == "1" %}selected = True {% endif %}>Meters</option>
+                    <option value="2" {% if unit_selection == "2" %}selected = True {% endif %}>Inches</option>
+                </select>
+            </fieldset>
+            
+            <fieldset class="final">
+                <input type="submit" value="Submit" class="submit">
+            </fieldset>
+
+            
+            {% if warning %}
+            <h2>{{warning}}</h2>
+            {% endif %}
+    </form>
+    </div>
+
+    
+<br><br><br>
+{% if calculations %}
+<div style="text-align: center; margin: auto; width: fit-content;">
+<!-- <div style="width: auto;"> -->
+    <div class="rollout_calculator">
+        
+        <table>
+            <tr>
+                <th>Ratios</th>
+                {% for sprocket in  sprockets%}
+                <th>{{sprocket}}</th>
+                {% endfor %}
+                <th>Ratios</th>
+            </tr>
+            {% for chainring in calculations %}
+                <tr>
+                    <th>{{ chainring.0 }}</th>
+                    {% for distance in chainring.1 %}
+                    {% if distance > rollout_selection %}
+                        <td class="illegalrollout">{{distance}}</td>
+                        {% endif %}
+                        {% if distance < rollout_selection and distance > minimum_good_rollout %}
+                        <td class="goodrollout">{{distance}}</td>
+                        {% endif %}
+                        {% if distance < minimum_good_rollout %}
+                        <td class="badrollout">{{distance}}</td>
+                        {% endif %}
+                    {% endfor %}
+                    <th>{{ chainring.0 }}</th>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <th>Ratios</th>
+                    {% for sprocket in  sprockets%}
+                    <th>{{sprocket}}</th>
+                    {% endfor %}
+                    <th>Ratios</th>
+                </tr>
+        </table>
+    
+    </div>
+    <div style="text-align: left;">
+        <small style="font-size: 12px;" >
+            Actuall Rollout may differ from calculations, intended as a ballpark figure.<br>Real world measurement required for any bike with rollout restrictions
+        </small>
+    </div>
+</div>
+   
+{% endif %}
+    
+</body>

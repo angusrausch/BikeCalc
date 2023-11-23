@@ -1,0 +1,23 @@
+{% include "calc/head.html" %} 
+{% load static %}
+
+
+<div class="main_div" style="width: fit-content; padding: 50px;">
+<h2>Log In</h2>
+<form method="post">
+  {% csrf_token %}
+  Username: <input type="text" name="username"><br>
+  Password: <input type="password" name="password"><br>
+  <small><br></small>
+  <button type="submit" style="display: block; font-size: larger; margin: auto; width: 50%;">Log In</button>
+</form>
+<br>
+{% if failed %}
+<div style="color: red;">
+Username or Password is incorrect
+</div>
+{% endif %}
+
+<br>
+<a href="sign_up">Sign Up</a>
+</div>

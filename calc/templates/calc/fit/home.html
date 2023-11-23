@@ -1,0 +1,91 @@
+{% include "calc/head.html" %} 
+
+
+<!DOCTYPE html>
+
+{% if user.is_authenticated %}
+    <div style="background-color: whitesmoke; text-align: center; padding: 3%;">
+        <h1>Fit File Viwer</h1>
+        <br><br>
+        <body>
+            This is a project designed to show highlights from a workout
+            <br>Simply upload a ride and a summary will be displayed
+            <br><small style="font-size: 9px;">Due to limited processing power, processing of file takes approximately 5-10 seconds per hour of activity</small>
+        </body>
+        <br><br>
+
+        <form method="post" enctype="multipart/form-data" id="fitForm" data-filename="{{filename}}">
+            {% csrf_token %}
+            <fieldset>
+                <input type="file" name="file_upload" id="fileInput" style="font-size: larger;"><br>
+                <small style="font-size: 8px;">
+                    Crank Length
+                    <select name="crank_length" style="width: 72px; font-size: 8px;">
+                        <option value=160>160mm</option>
+                        <option value=165>165mm</option>
+                        <option value=170>170mm</option>
+                        <option value=172.5 selected>172.5mm</option>
+                        <option value=175>175mm</option>
+                        <option value=180>180mm</option>
+                        <option value=185>185mm</option>
+                        {% if crank_length %} <option selected value={{crank_length}}>{{crank_length}}</option> {% endif %}
+                    </select>
+                    Required for Kg of force
+                </small>
+                <br><br>
+                <button type="submit" class="submit">Upload</button>
+            </fieldset>
+            {% if warning %}
+                <h4 style="color: red;">{{warning}}</h4>
+            {% endif %}
+        </form>
+    </div>
+    <br>
+    {% if data %}
+        <div style="background-color: whitesmoke; text-align: center; padding: 3%; width: 90%; align-self: center; margin: auto; display: flex; justify-content: space-between;">
+            <div>
+                <h2>{{filename}}</h2>
+                <h4>{{data.date}}&emsp;Duration: {{data.time}}h<br>
+                {{data.distance}}Km&emsp;{{data.altgained}}m climbing</h4>
+                Average Speed: {{data.avgspd}}<br>
+                Average Power: {{data.avgpower}}<br>
+                Average HR: {{data.avghr}}<br>
+                {% if data.steepest.grade > 10 %}
+                Steepst Gradient: {{data.steepest.grade}}%<br>
+                {% endif %}
+                High Speed: {{data.fastest.speed}}Km/h {% if data.fastest.power > 750 %} at {{data.fastest.power}}w {% endif %}{% if data.fastest.grade < -5 %} and a slope of {{data.fastest.grade}}% {% endif %}<br>
+                Max Torque: {{data.maxtorque.torque}}nm at {{data.maxtorque.cadence}}rpm making {{data.maxtorque.power}}w. Equalling {{data.maxtorque.kgs}}Kg of force<br>
+            </div>
+            
+            <div><p style="text-align: left;">Power:</p>
+                <table style="border: 0;">
+                    <tr>
+                        <th style="border: 0;">Time <small>(Seconds)</small></th>
+                        <th style="border: 0;">Power</th>
+                        <th  style="border: 0;">Speed</th>
+                        <th style="border: 0;">Cadence</th>
+                        <th style="border: 0;">Torque</th>
+                    </tr>
+                    {% for powerincrement in data.maxpower %}
+                        <tr>
+                            <td style="border: 0;">{{powerincrement.time}}</td>
+                            <td style="border: 0;">{{powerincrement.power}}</td>
+                            <td style="border: 0;">{{powerincrement.speed}}</td>
+                            <td style="border: 0;">{{powerincrement.cadence}}</td>
+                            <td style="border: 0;">{{powerincrement.torque}}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+
+
+{% else %}
+    <br><br>
+    <div class="main_div" style="text-align: center;">
+        <h3>Fit File Viewer is only available when logged in.</h3>
+        <a href="{% url 'login' %}">Log In</a>
+    </div>
+{% endif %}

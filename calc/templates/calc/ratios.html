@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+{% include "calc/head.html" %} 
+
+
+
+
+
+
+<body>
+
+    
+        <div class="input_form">
+        <form method="post">
+            {% csrf_token %}
+            
+            
+            {% if user.is_authenticated %}
+                <fieldset class="bike_selection">
+                    Bike Selection:
+                    <br>
+                    <select name="bike_selection">
+                        {% if not bike_selection %}
+                        <option selected disabled="true" value="">-- Bike --</option>
+                        {% endif %}
+                        {% for result in bikes %}
+                            <option value="{{ result.id }}">{{ result.bike_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <br><small>
+                        You may select either a bike you have created or specific components
+                    </small>
+                </fieldset>
+            {% endif %}
+
+
+            <fieldset class="chainring_selection">
+                Chainring Selection: 
+                <br>
+                <select name="chainring_selection">
+                    <option>-- Manual Input --</option>
+                    {% for result in chainrings_list %}
+                    <option value ="{{result.id}}">{{result.chainring_name}}</option>
+                        {% endfor %}
+                </select>
+                <br><small>Manual Input:</small><br>
+                {% if chainring_selection%}
+                <input type="text" name="manual_chainring" value = {{chainring_selection}}>
+                {% else %}
+                <input type="text" name="manual_chainring">
+                {% endif %}
+            </fieldset>
+
+            <fieldset class="cassette_selection">
+                Cassette Selection:
+                <br>
+                <select name="cassette_selection">
+                    <option>-- Manual Input --</option>
+                    {% for result in cassettes %}
+                    <option value="{{result.id}}">{{result.cassette_name}}</option>
+                        {% endfor %}
+                </select>
+                <br><small>Manual Input:</small><br>
+                {% if cassette_selection %}
+                <input type="text" name="manual_cassette" value= {{cassette_selection}}>
+                {% else %}
+                <input type="text" name="manual_cassette">
+                {% endif %}
+            </fieldset>
+            
+            <fieldset class="final">
+                <input type="submit" value="Submit" class="submit">
+            </fieldset>
+
+            
+            {% if warning %}
+            <h2>{{warning}}</h2>
+            {% endif %}
+    </form>
+    </div>
+
+    
+<br><br><br>
+<div class="rollout_calculator">
+    {% if calculations %}
+    <table>
+        <tr>
+            <th>Ratios</th>
+            {% for sprocket in  sprockets%}
+            <th>{{sprocket}}</th>
+            {% endfor %}
+            <th>Ratios</th>
+        </tr>
+        {% for chainring in calculations %}
+            <tr>
+                <th>{{ chainring.0 }}</th>
+                {% for distance in chainring.1 %}
+                    <td class="mediumspeed">{{distance}}</td>
+                {% endfor %}
+                <th>{{ chainring.0 }}</th>
+            </tr>
+            {% endfor %}
+            <tr>
+                <th>Ratios</th>
+                {% for sprocket in  sprockets%}
+                <th>{{sprocket}}</th>
+                {% endfor %}
+                <th>Ratios</th>
+            </tr>
+    </table>
+    {% endif %}
+</div>
+    
+</body>
