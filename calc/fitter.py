@@ -127,21 +127,21 @@ def processing(fit_file, crank):
     maxTorque = torqueFinder(recordArray)
 
     
-    print(recordArray[int(len(recordArray) / 2)])
-    # 'position_lat': -32 8000740
-    # 'position_long': 182 6033027
-    lat = recordArray[int(len(recordArray) / 2)]['position_lat']
-    long = recordArray[int(len(recordArray) / 2)]['position_long']
-    # print(lat)
-    # print(len(str(lat)))
-    str_lat = str(lat)
-    revised_lat = float(str_lat[ : (len(str_lat) - 7)] + "." + str_lat[(len(str_lat) - 7): ])
-    # print(revised_lat)
-    str_long = str(long)
-    revised_long = float(str_long[ : (len(str_long) - 8)] + "." + str_long[(len(str_long) - 8): ])
-    # print(revised_long)
-    tzfinder = TimezoneFinder() 
-    # print(tzfinder.timezone_at(lng=revised_long, lat=revised_lat))
+    # # print(recordArray[int(len(recordArray) / 2)])
+    # # 'position_lat': -32 8000740
+    # # 'position_long': 182 6033027
+    # lat = recordArray[int(len(recordArray) / 2)]['position_lat']
+    # long = recordArray[int(len(recordArray) / 2)]['position_long']
+    # # print(lat)
+    # # print(len(str(lat)))
+    # str_lat = str(lat)
+    # revised_lat = float(str_lat[ : (len(str_lat) - 7)] + "." + str_lat[(len(str_lat) - 7): ])
+    # # print(revised_lat)
+    # str_long = str(long)
+    # revised_long = float(str_long[ : (len(str_long) - 8)] + "." + str_long[(len(str_long) - 8): ])
+    # # print(revised_long)
+    # tzfinder = TimezoneFinder() 
+    # # print(tzfinder.timezone_at(lng=revised_long, lat=revised_lat))
 
     date = recordArray[0]['timestamp']
     date = date + timedelta(hours=10)
