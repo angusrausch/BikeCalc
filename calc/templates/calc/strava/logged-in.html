@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+{% load static %}
+{% include "calc/head.html" %} 
+<html lang="en">
+<body>
+
+
+    <br>
+    <h2>{{error}}</h2>
+    <br>
+
+    <div class="main_div">
+        <form method="post">
+            {% csrf_token %}
+
+            <h3>{{athlete.firstname}} {{athlete.lastname}}&emsp;<img src={{athlete.profile_medium}}></h3>
+            <h4>{% if athlete.premium %}Premium{% else %}Free{% endif %}</h4>
+            <body>
+                Total Ridden: {{ athlete.all_ride_totals.distance}} Km<br>
+                4 Weeks: {{ athlete.recent_ride_totals.distance}}Km<br>
+                Year to Date: {{ athlete.ytd_ride_totals.distance}}
+
+                <br><br>
+                Followers: {{athlete.follower_count}}<br>
+                Following: {{athlete.friend_count}}<br>
+                Gear:
+                {% for bike in athlete.bikes %}
+                    <div>
+                        &emsp;<a href="{{bike.id}}"> {{bike.name}}</a> {%if bike.primary%}Primary{% endif %}
+                        &emsp;<small>Distance {{bike.converted_distance}}Km</small>
+                    </div>
+                {% endfor %}
+            </body>
+        </form>
+    </div>
+
+
+    <br><br>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" value="1" name="logout"><h2>Logout of Strava</h2></button>
+</form>
+
+
+</body>
+</html>

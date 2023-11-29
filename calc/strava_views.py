@@ -1,0 +1,200 @@
+from django.http import HttpResponse
+from django.template import loader
+from django.http import Http404
+from django.shortcuts import render, redirect
+from datetime import datetime
+from passlib.hash import pbkdf2_sha256
+from django.contrib.auth import login, authenticate
+from django.urls import path
+from django.views.decorators.csrf import csrf_protect
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.contrib.auth.models import User
+import requests
+from requests.exceptions import RetryError, HTTPError, RequestException
+from mysecrets import CLIENT_SECRET_KEY
+
+
+def revoke_strava_token(access_token):
+    # Specify the access token in the Authorization header
+    headers = {'Authorization': f'Bearer {access_token}'}
+
+    # Make a POST request to the deauthorization endpoint
+    response = requests.post('https://www.strava.com/oauth/deauthorize', headers=headers)
+
+    if response.status_code == 200:
+        print("Strava access token revoked successfully")
+    else:
+        print(f"Failed to revoke Strava access token. Status code: {response.status_code}")
+        print(response.text)
+
+@csrf_protect
+def main(request):
+    context = {
+        'page': 'strava-home'
+    }
+
+    if request.user.is_authenticated:
+        try:
+            if 'access' in request.session:
+                access_token = request.session.get('access')
+                if request.method == "POST":
+                    data = request.POST
+
+                    if data.get('logout') == "1":
+                        revoke_strava_token(access_token)
+                        keys_to_clear = ['access', 'token_type', 'expiry', 'refresh', 'athlete']
+                        for key in keys_to_clear:
+                            if key in request.session:
+                                del request.session[key]
+
+                        return render(request, 'calc/strava/main.html', context)
+
+                  
+
+                try:
+                    headers = {'Authorization': f'Bearer {access_token}'}
+                    response = requests.get('https://www.strava.com/api/v3/athlete', headers=headers)
+                    
+                    
+                    if response.status_code == 200:
+                        athlete_data = response.json()
+                    elif response.status_code == 429:
+                        raise RetryError(response=response)
+                    else:
+                        response.raise_for_status()
+                    
+                    userid = athlete_data['id']
+                    headers = {'Authorization': f'Bearer {access_token}'}
+                    response = requests.get(f'https://www.strava.com/api/v3/athletes/{userid}/stats', headers=headers)
+
+                    if response.status_code == 200:
+                        athlete_data = athlete_data | response.json()
+                        # for key, value in athlete_data.items():
+                        #     print(f"{key}: {value}")
+
+
+
+
+
+
+                        converted_data = {
+                            'id': athlete_data['id'],
+                            'firstname': athlete_data['firstname'],
+                            'lastname': athlete_data['lastname'],
+                            'city': athlete_data['city'],
+                            'state': athlete_data['state'],
+                            'country': athlete_data['country'],
+                            'premium': athlete_data['premium'],
+                            'weight': athlete_data['weight'],
+                            'profile_medium': athlete_data['profile_medium'],
+                            'follower_count': athlete_data['follower_count'],
+                            'friend_count': athlete_data['friend_count'],
+                            'clubs': athlete_data['clubs'],
+                            'ftp': athlete_data['ftp'],
+                            'bikes': athlete_data['bikes'],
+                            'biggest_ride_distance': athlete_data['biggest_ride_distance'] / 1000,
+                            'biggest_climb_elevation_gain': athlete_data['biggest_climb_elevation_gain'],
+                            'recent_ride_totals': {
+                                'count': athlete_data['recent_ride_totals']['count'],
+                                'distance': int(athlete_data['recent_ride_totals']['distance'] / 1000),
+                                'moving_time': int(athlete_data['recent_ride_totals']['moving_time'] / 3600),
+                                'elapsed_time': int(athlete_data['recent_ride_totals']['elapsed_time'] / 3600),
+                                'elevation_gain': athlete_data['recent_ride_totals']['elevation_gain'],
+                                'achievement_count': athlete_data['recent_ride_totals']['achievement_count']
+                            },
+                            'all_ride_totals': {
+                                'count': athlete_data['all_ride_totals']['count'],
+                                'distance': int(athlete_data['all_ride_totals']['distance'] / 1000),
+                                'moving_time': int(athlete_data['all_ride_totals']['moving_time'] / 3600),
+                                'elapsed_time': int(athlete_data['all_ride_totals']['elapsed_time'] / 3600),
+                                'elevation_gain': athlete_data['all_ride_totals']['elevation_gain']
+                            },
+                            'ytd_ride_totals': {
+                                'count': athlete_data['ytd_ride_totals']['count'],
+                                'distance': int(athlete_data['ytd_ride_totals']['distance'] / 1000),
+                                'moving_time': int(athlete_data['ytd_ride_totals']['moving_time'] / 3600),
+                                'elapsed_time': int(athlete_data['ytd_ride_totals']['elapsed_time'] / 3600),
+                                'elevation_gain': athlete_data['ytd_ride_totals']['elevation_gain']
+                            }
+                        }
+
+
+                                        
+
+                    elif response.status_code == 429:
+                        raise RetryError(response=response)
+                    else:
+                        response.raise_for_status()
+
+
+                
+                except HTTPError as http_error:
+                    # Handle other HTTP errors
+                    context['error'] = f"HTTP error: {http_error}"
+                    return render(request, 'calc/strava/main.html', context)
+                # except RequestException as request_exception:
+                #     # Handle other request-related exceptions
+                #     context['error'] = f"Request exception: {request_exception}"
+                #     return render(request, 'calc/strava/main.html', context)
+                else:
+                    context['athlete'] = converted_data
+                    
+
+                return render(request, 'calc/strava/logged-in.html', context)
+            elif 'code' in request.GET:
+                # The authorization code returned by Strava
+                authorization_code = request.GET['code']
+
+                # Replace these values with your actual Strava application credentials
+                client_id = '117410'
+                client_secret = CLIENT_SECRET_KEY
+                redirect_uri = 'http://127.0.0.1:8000/calc/strava'  # Should match the registered redirect URI
+
+                # Strava token endpoint URL
+                token_url = 'https://www.strava.com/oauth/token'
+
+                # Request parameters for token exchange
+                data = {
+                    'client_id': client_id,
+                    'client_secret': client_secret,
+                    'code': authorization_code,
+                    'grant_type': 'authorization_code',
+                    'redirect_uri': redirect_uri,
+                }
+
+                # Make a POST request to the Strava token endpoint
+                response = requests.post(token_url, data=data)
+
+                if response.status_code == 200:
+                    # Token exchange successful
+                    access_token = response.json().get('access_token')
+
+
+                    # Save the access token to the user's session
+                    request.session['access'] = access_token
+                    request.session['token_type'] = response.json().get('token_type')
+                    request.session['expiry'] = response.json().get('expires_at')
+                    request.session['refresh'] = response.json().get('refresh_token')
+                    request.session['athlete'] = response.json().get('athlete')
+
+                    # print("bearer: ", access_token, "\nType: ", request.session.get('token_type', None), 
+                    #       "\nExpiry: ", request.session.get('expiry', None), "\nRefresh: ", request.session.get('refresh', None),
+                    #       '\nAthlete: ', request.session.get('athlete', None))
+                    # Your code to store or use the access token goes here
+
+                    # Redirect the user to a success page or perform other actions
+                    # return render(request, 'calc/strava/main.html', context)
+                    return redirect('strava-home')
+                else:
+                    # Token exchange failed, handle the error
+                    error_message = response.json().get('error_description', 'Token exchange failed')
+                    context["error"] = error_message
+                    return render(request, 'calc/strava/main.html', context)
+            else:
+                return render(request, 'calc/strava/main.html', context)
+        except RetryError as retry_error:
+                    context['error'] = f"Rate limit exceeded: {retry_error}"
+                    return render(request, 'calc/strava/main.html', context)
+    else:
+        return redirect('login')

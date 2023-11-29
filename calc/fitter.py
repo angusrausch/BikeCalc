@@ -4,7 +4,7 @@ import threading
 import queue
 import concurrent.futures
 from datetime import datetime, timezone, timedelta
-from timezonefinder import TimezoneFinder 
+# from timezonefinder import TimezoneFinder 
 #python -m auto_py_to_exe
 
     

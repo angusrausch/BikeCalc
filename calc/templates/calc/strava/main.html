@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+{% load static %}
+{% include "calc/head.html" %} 
+<html lang="en">
+<body>
+
+
+    <br>
+    {{error}}
+    <br>
+
+<form>
+    <button type="button" onclick="authorizeWithStrava()"><h2>Login with Strava</h2></button>
+</form>
+
+
+<script>
+function authorizeWithStrava() {
+    // Replace these values with your actual client ID and redirect URI
+    const clientId = '117410';
+    const redirectUri = 'http://127.0.0.1:8000/calc/strava';
+    
+    // Specify the desired scopes separated by space
+    const scope = 'activity:read_all,profile:read_all';
+
+    // Construct the Strava authorization URL
+    const authorizationUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scope}`;
+
+    // Redirect the user to the Strava authorization page
+    window.location.href = authorizationUrl;
+}
+</script>
+
+</body>
+</html>

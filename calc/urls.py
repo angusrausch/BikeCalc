@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib import admin
-from . import views, profile_views, fit_views
+from . import views, profile_views, fit_views, strava_views
 
 urlpatterns = [
     path("", views.index, name="index"),
@@ -22,5 +22,8 @@ urlpatterns = [
     path('createblog', profile_views.create_blog, name='create_blog'),
     path('createbike', profile_views.create_bike, name="create_bike"),
 
-    path('fittool', fit_views.fitviewer, name='fit-home')
+    path('fittool', fit_views.fitviewer, name='fit-home'),
+
+    path('strava', strava_views.main, name='strava-home'),
+
 ]
