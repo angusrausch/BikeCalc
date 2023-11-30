@@ -12,7 +12,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.models import User
 import requests
 from requests.exceptions import RetryError, HTTPError, RequestException
-from mysecrets import CLIENT_SECRET_KEY, CLIENT_ID, MAPBOX_SECRET_KEY, TEMP_API_DATA, GOOGLEMAPS_SECRET_KEY
+from mysecrets import CLIENT_SECRET_KEY, CLIENT_ID, MAPBOX_SECRET_KEY, GOOGLEMAPS_SECRET_KEY
 import time
 import polyline
 
