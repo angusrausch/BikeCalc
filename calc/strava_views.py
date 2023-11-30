@@ -12,7 +12,8 @@ from django.contrib.auth import logout
 from django.contrib.auth.models import User
 import requests
 from requests.exceptions import RetryError, HTTPError, RequestException
-from mysecrets import CLIENT_SECRET_KEY
+from mysecrets import CLIENT_SECRET_KEY, CLIENT_ID
+import time
 
 
 def revoke_strava_token(access_token):
@@ -28,6 +29,47 @@ def revoke_strava_token(access_token):
         print(f"Failed to revoke Strava access token. Status code: {response.status_code}")
         print(response.text)
 
+def refresh_token(request):
+    client_id = CLIENT_ID
+    client_secret = CLIENT_SECRET_KEY
+    refresh_token = request.session.get('refresh')
+    token_url = "https://www.strava.com/oauth/token"
+    # Set up the data for the token refresh request
+    data = {
+        'grant_type': 'refresh_token',
+        'refresh_token': refresh_token,
+        'client_id': client_id,
+        'client_secret': client_secret,
+    }
+
+    try:
+        # Make a POST request to the token endpoint
+        response = requests.post(token_url, data=data)
+
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            # Parse the JSON response
+            token_data = response.json()
+
+            # Extract the new access token and refresh token
+            new_access_token = token_data['access_token']
+            new_refresh_token = token_data.get('refresh_token', refresh_token)
+
+            request.session['access'] = new_access_token
+            request.session['expiry'] = response.json().get('expires_at')
+            request.session['refresh'] = response.json().get('refresh_token')
+            return
+        else:
+            # Handle the error case
+            print(f"Token refresh failed with status code {response.status_code}")
+            print(response.text)
+            
+
+    except Exception as e:
+        print(f"An error occurred during token refresh: {e}")
+
+    revoke_strava_token(token_data['access_token'])
+
 @csrf_protect
 def main(request):
     context = {
@@ -36,6 +78,11 @@ def main(request):
 
     if request.user.is_authenticated:
         try:
+            # print(request.session.get('expiry'))
+            # print(time.time())
+            if time.time() >= request.session.get('expiry') - 3600:
+                print("REFRESHING TOKEN")
+                refresh_token(request)
             if 'access' in request.session:
                 access_token = request.session.get('access')
                 if request.method == "POST":
@@ -65,19 +112,10 @@ def main(request):
                         response.raise_for_status()
                     
                     userid = athlete_data['id']
-                    headers = {'Authorization': f'Bearer {access_token}'}
                     response = requests.get(f'https://www.strava.com/api/v3/athletes/{userid}/stats', headers=headers)
 
                     if response.status_code == 200:
                         athlete_data = athlete_data | response.json()
-                        # for key, value in athlete_data.items():
-                        #     print(f"{key}: {value}")
-
-
-
-
-
-
                         converted_data = {
                             'id': athlete_data['id'],
                             'firstname': athlete_data['firstname'],
@@ -117,17 +155,25 @@ def main(request):
                                 'elapsed_time': int(athlete_data['ytd_ride_totals']['elapsed_time'] / 3600),
                                 'elevation_gain': athlete_data['ytd_ride_totals']['elevation_gain']
                             }
-                        }
-
-
-                                        
+                        }         
 
                     elif response.status_code == 429:
                         raise RetryError(response=response)
                     else:
                         response.raise_for_status()
 
-
+                    response = requests.get('https://www.strava.com/api/v3/athlete/activities', headers=headers)
+                    
+                    
+                    if response.status_code == 200:
+                        athlete_activities = response.json()
+                        # for key, value in athlete_activities[1].items():
+                        #     print(f"{key}: {value}")
+                    elif response.status_code == 429:
+                        raise RetryError(response=response)
+                    else:
+                        response.raise_for_status()
+                    
                 
                 except HTTPError as http_error:
                     # Handle other HTTP errors
@@ -147,7 +193,7 @@ def main(request):
                 authorization_code = request.GET['code']
 
                 # Replace these values with your actual Strava application credentials
-                client_id = '117410'
+                client_id = CLIENT_ID
                 client_secret = CLIENT_SECRET_KEY
                 redirect_uri = 'http://127.0.0.1:8000/calc/strava'  # Should match the registered redirect URI
 

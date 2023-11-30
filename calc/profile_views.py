@@ -9,6 +9,7 @@ from django.urls import path
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+from .strava_views import revoke_strava_token
 
 
 from .models import Tyre_Size, Cassettes, Chainrings, Blog, user_feedback, Bike
@@ -69,8 +70,12 @@ def sign_up(request):
     return render(request, 'calc/authen/sign_up.html', context)
 
 def logout_view(request, prevpage="index"):
-    print(prevpage)
     logout(request)
+    revoke_strava_token(request.session.get('access_token'))
+    keys_to_clear = ['access', 'token_type', 'expiry', 'refresh', 'athlete']
+    for key in keys_to_clear:
+        if key in request.session:
+            del request.session[key]    
     return redirect(prevpage)
 
 @login_required(login_url="login")
