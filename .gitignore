@@ -7,3 +7,5 @@ db.sqlite3
 mysecrets.py
 __pycache__/
 __pycache__/mysecrets.cpython-39.pyc
+__pycache__/mysecrets.cpython-39.pyc
+calc/__pycache__/strava_views.cpython-39.pyc
