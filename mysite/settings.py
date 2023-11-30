@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'calc.apps.CalcConfig',
     'sslserver',
+    'django.contrib.sitemaps',
+    'mysite',
+    'django.contrib.humanize'
 ]
 
 MIDDLEWARE = [

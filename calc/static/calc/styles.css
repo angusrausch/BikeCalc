@@ -143,3 +143,10 @@ h1 {
     color: #333;
     margin-left: 10px;
 }
+.no-border-table {
+    border-collapse: collapse;
+}
+
+.no-border-cell {
+    border: none;
+}

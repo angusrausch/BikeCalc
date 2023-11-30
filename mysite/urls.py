@@ -16,9 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.sitemaps.views import sitemap
+
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("calc/", include("calc.urls")),
-    path("", include("calc.urls"))
+    path("", include("calc.urls")),
 ]

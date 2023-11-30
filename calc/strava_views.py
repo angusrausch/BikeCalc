@@ -12,8 +12,10 @@ from django.contrib.auth import logout
 from django.contrib.auth.models import User
 import requests
 from requests.exceptions import RetryError, HTTPError, RequestException
-from mysecrets import CLIENT_SECRET_KEY, CLIENT_ID
+from mysecrets import CLIENT_SECRET_KEY, CLIENT_ID, MAPBOX_SECRET_KEY, TEMP_API_DATA, GOOGLEMAPS_SECRET_KEY
 import time
+import polyline
+
 
 
 def revoke_strava_token(access_token):
@@ -69,6 +71,7 @@ def refresh_token(request):
         print(f"An error occurred during token refresh: {e}")
 
     revoke_strava_token(token_data['access_token'])
+    return redirect('strava-home')
 
 @csrf_protect
 def main(request):
@@ -80,10 +83,11 @@ def main(request):
         try:
             # print(request.session.get('expiry'))
             # print(time.time())
-            if time.time() >= request.session.get('expiry') - 3600:
-                print("REFRESHING TOKEN")
-                refresh_token(request)
+            
             if 'access' in request.session:
+                if time.time() >= request.session.get('expiry') - 3600:
+                    print("REFRESHING TOKEN")
+                    refresh_token(request)
                 access_token = request.session.get('access')
                 if request.method == "POST":
                     data = request.POST
@@ -167,8 +171,18 @@ def main(request):
                     
                     if response.status_code == 200:
                         athlete_activities = response.json()
+                        # datetime_obj.strftime("%d/%m/%y")
+                        processed_athlete_activities = []
+                        for athlete_activity in athlete_activities:
+                            processed_athlete_activity = athlete_activity
+                            processed_athlete_activity['distance'] = int(processed_athlete_activity['distance'] / 1000)
+                            processed_athlete_activity['start_date_local'] = datetime.strptime(processed_athlete_activity['start_date_local'], "%Y-%m-%dT%H:%M:%SZ").strftime("%d/%m/%Y")
+                            #processed_athlete_activity['start_date_local'].strftime("%d/%m/%y")
+                            processed_athlete_activities.append(processed_athlete_activity)
                         # for key, value in athlete_activities[1].items():
                         #     print(f"{key}: {value}")
+
+
                     elif response.status_code == 429:
                         raise RetryError(response=response)
                     else:
@@ -184,7 +198,7 @@ def main(request):
                 #     context['error'] = f"Request exception: {request_exception}"
                 #     return render(request, 'calc/strava/main.html', context)
                 else:
-                    context['athlete'] = converted_data
+                    context['athlete'], context['activities'] = converted_data, athlete_activities
                     
 
                 return render(request, 'calc/strava/logged-in.html', context)
@@ -244,3 +258,68 @@ def main(request):
                     return render(request, 'calc/strava/main.html', context)
     else:
         return redirect('login')
+    
+
+@csrf_protect
+def activity(request, activity_id):
+    context = {'page': 'strava-home'}
+    if request.user.is_authenticated:
+        try:
+            if 'access' in request.session:
+
+                try:
+                    #FOR TESTING
+                    
+                    if time.time() >= request.session.get('expiry') - 3600:
+                        refresh_token(request)
+                    access_token = request.session.get('access')
+                    headers = {'Authorization': f'Bearer {access_token}'}
+                    response = requests.get(f"https://www.strava.com/api/v3/activities/{activity_id}?include_all_efforts=false", headers=headers)
+
+                    if response.status_code == 200:
+                        activity_data = response.json()
+                        # for key, value in activity_data.items():
+                            #     print(f"{key}: {value}\n")
+                        # print(activity_data)
+                    elif response.status_code == 429:
+                        raise RetryError(response=response)
+                    else:
+                        response.raise_for_status()
+                    #FOR TESTING
+                    # activity_data = {}
+                    # for key, value in TEMP_API_DATA.items():
+                    #     activity_data[key] = value
+                    #FOR TESTING
+
+                except HTTPError as http_error:
+                    context['error'] = f"HTTP error: {http_error}"
+                    return render(request, 'calc/strava/main.html', context)
+                else:
+                    activity_data['distance'] = round(activity_data['distance']/1000, 2)
+                    activity_data['moving_time'] = f"{int(int(activity_data['moving_time'])/3600):02d}:{int(int(activity_data['moving_time'])//60):02d}"
+                    activity_data['elapsed_time'] = (f"{int(activity_data['elapsed_time']/3600)}:{int(activity_data['elapsed_time']//60)}")
+                    activity_data['average_speed'] = round(activity_data['average_speed']*3.6, 1)
+                    activity_data['max_speed'] = round(activity_data['max_speed']*3.6, 1)
+                    encoded_polyline =  polyline.decode(activity_data['map']['polyline'], 5)
+
+                    points = []
+                    for point in encoded_polyline:
+                        points.append([point[0], point[1]])
+
+
+
+
+                    print(points)
+                    context = context | {
+                        'activity': activity_data,
+                        'secret': {'mapbox': MAPBOX_SECRET_KEY, 'google': GOOGLEMAPS_SECRET_KEY},
+                        'polyline': points
+                    }
+                    return render(request, 'calc/strava/activity.html', context)
+                
+            else: return redirect('strava-home')
+            
+        except RetryError as retry_error:
+                    context['error'] = f"Rate limit exceeded: {retry_error}"
+                    return render(request, 'calc/strava/main.html', context)
+    else: return redirect('login')

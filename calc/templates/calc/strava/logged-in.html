@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 {% load static %}
+{% load humanize %}
+
 {% include "calc/head.html" %} 
 <html lang="en">
 <body>
@@ -32,6 +34,30 @@
                 {% endfor %}
             </body>
         </form>
+    </div>
+    <br><br><br>
+    <div class="main_div">
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Distance</th>
+                <th>Elevation</th>
+                <th>Date</th>
+                <th>Kudos</th>
+                <th>Commute</th>
+            </tr>
+            {% for activity in activities %}
+                <tr>
+                    <td><a href="{% url 'activity' activity.id %}">{{ activity.name }}</a></td>
+                    <td>{{ activity.distance}}Km</td>
+                    <td>{{ activity.total_elevation_gain }}m</td>
+                    <td>{{ activity.start_date_local}}</td>
+                    <td>{{activity.kudos_count}}</td>
+                    <td>{{ activity.commute }}</td>
+                    
+                </tr>
+            {% endfor %}
+        </table>
     </div>
 
 

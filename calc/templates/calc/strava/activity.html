@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+
+{% include "calc/head.html" %} 
+<html lang="en">
+<head>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{secret.google}}&libraries=geometry&callback=initMap" defer async></script>
+    <style>
+        #map {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+
+    &emsp;&emsp;&emsp;<button onclick="window.location.href='/strava'">Back</button>
+
+    <br>
+    <h2>{{error}}</h2>
+    <br>
+
+    <div class="main_div">
+        <h2>{{activity.name}}</h2>
+        <h4>Distance: {{activity.distance}}Km&emsp;Moving Time: {{activity.moving_time}}</h4>
+        <div id='map'></div>
+        <script>
+            function initMap() {
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: {{activity.start_latlng.0}}, lng: {{activity.start_latlng.1}} },
+                    zoom: 10
+                });
+        
+                new google.maps.Marker({
+                    position: { lat: {{activity.start_latlng.0}}, lng: {{activity.start_latlng.1}} },
+                    map: map
+                });
+
+
+
+                py_polyline = {{polyline}};
+                let py_Coords = [];
+                for (let i = 0; i < py_polyline.length; i += 1) {
+                    let lat = py_polyline[i][0];
+                    let lng = py_polyline[i][1];
+                    py_Coords.push({ 'lat': lat, 'lng': lng });
+                }
+
+                var route = new google.maps.Polyline({
+                    path: py_Coords,
+                    geodesic: true,
+                    strokeColor: '#888',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 8
+                });
+        
+                route.setMap(map);
+
+
+
+
+
+
+
+
+
+
+        
+            }
+        </script>
+        
+        
+        <table class="no-border-table">
+            <tr>
+                <th class="no-border-cell">&emsp;</th>
+                <th class="no-border-cell">Average</th>
+                <th class="no-border-cell" >Max</th>
+            </tr>
+            <tr>
+                <td class="no-border-cell">Speed</td>
+                <td class="no-border-cell">{{activity.average_speed}}Km/h</td>
+                <td class="no-border-cell">{{activity.max_speed}}Km/h</td>
+            </tr>
+            {% if activity.device_watts %}
+            <tr>
+                <td class="no-border-cell">Power</td>
+                <td class="no-border-cell">{{activity.average_watts}}w</td>
+                <td class="no-border-cell">{{activity.max_watts}}w</td>
+            </tr>
+            {% endif %}
+            {% if activity.has_heartrate %}
+            <tr>
+                <td class="no-border-cell">HR</td>
+                <td class="no-border-cell">{{activity.average_heartrate}}bpm</td>
+                <td class="no-border-cell">{{activity.max_heartrate}}bpm</td>
+            </tr>
+            {% endif %}
+        </table>
+        
+    </div>
+
+    <br><br>
+
+</body>
+</html>
+
