@@ -23,13 +23,20 @@
 
     <div class="main_div">
         <h2>{{activity.name}}</h2>
-        <h4>Distance: {{activity.distance}}Km&emsp;Moving Time: {{activity.moving_time}}</h4>
+        <h4>
+            Date: {{activity.start_date}}&emsp;Time: {{activity.start_time}}<br>
+            Distance: {{activity.distance}}Km&emsp;Moving Time: {{activity.moving_time}}
+        </h4>
+       <div style="padding: 0 20px;">
+            {{activity.description}}
+       </div><br>
         <div id='map'></div>
         <script>
+            
             function initMap() {
                 var map = new google.maps.Map(document.getElementById('map'), {
                     center: { lat: {{activity.start_latlng.0}}, lng: {{activity.start_latlng.1}} },
-                    zoom: 10
+                    zoom: 12
                 });
         
                 new google.maps.Marker({
@@ -50,7 +57,7 @@
                 var route = new google.maps.Polyline({
                     path: py_Coords,
                     geodesic: true,
-                    strokeColor: '#888',
+                    strokeColor: '#946',
                     strokeOpacity: 1.0,
                     strokeWeight: 8
                 });

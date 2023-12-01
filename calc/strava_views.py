@@ -15,21 +15,27 @@ from requests.exceptions import RetryError, HTTPError, RequestException
 from mysecrets import CLIENT_SECRET_KEY, CLIENT_ID, MAPBOX_SECRET_KEY, GOOGLEMAPS_SECRET_KEY
 import time
 import polyline
+import math
 
 
-
-def revoke_strava_token(access_token):
+def revoke_strava_token(request):
     # Specify the access token in the Authorization header
+    access_token = request.session.get('access')
     headers = {'Authorization': f'Bearer {access_token}'}
 
     # Make a POST request to the deauthorization endpoint
     response = requests.post('https://www.strava.com/oauth/deauthorize', headers=headers)
+    
+    # Remove the 'access' key from the session data
+    if 'access' in request.session:
+        del request.session['access']
 
     if response.status_code == 200:
         print("Strava access token revoked successfully")
     else:
         print(f"Failed to revoke Strava access token. Status code: {response.status_code}")
         print(response.text)
+
 
 def refresh_token(request):
     client_id = CLIENT_ID
@@ -64,13 +70,14 @@ def refresh_token(request):
         else:
             # Handle the error case
             print(f"Token refresh failed with status code {response.status_code}")
+            revoke_strava_token(request)
             print(response.text)
             
 
     except Exception as e:
         print(f"An error occurred during token refresh: {e}")
 
-    revoke_strava_token(token_data['access_token'])
+    revoke_strava_token(request)
     return redirect('strava-home')
 
 @csrf_protect
@@ -93,7 +100,7 @@ def main(request):
                     data = request.POST
 
                     if data.get('logout') == "1":
-                        revoke_strava_token(access_token)
+                        revoke_strava_token(request)
                         keys_to_clear = ['access', 'token_type', 'expiry', 'refresh', 'athlete']
                         for key in keys_to_clear:
                             if key in request.session:
@@ -248,8 +255,15 @@ def main(request):
                     return redirect('strava-home')
                 else:
                     # Token exchange failed, handle the error
+                    revoke_strava_token(request)
                     error_message = response.json().get('error_description', 'Token exchange failed')
                     context["error"] = error_message
+                    print(response.json)
+                    authorization_code = request.GET['code']
+                    print("Authorization Code:", authorization_code)
+                    response = requests.post(token_url, data=data)
+                    print("Token Exchange Response:", response.json())
+
                     return render(request, 'calc/strava/main.html', context)
             else:
                 return render(request, 'calc/strava/main.html', context)
@@ -296,8 +310,10 @@ def activity(request, activity_id):
                     return render(request, 'calc/strava/main.html', context)
                 else:
                     activity_data['distance'] = round(activity_data['distance']/1000, 2)
-                    activity_data['moving_time'] = f"{int(int(activity_data['moving_time'])/3600):02d}:{int(int(activity_data['moving_time'])//60):02d}"
-                    activity_data['elapsed_time'] = (f"{int(activity_data['elapsed_time']/3600)}:{int(activity_data['elapsed_time']//60)}")
+                    activity_data['start_date'] = datetime.strptime(activity_data['start_date_local'], "%Y-%m-%dT%H:%M:%SZ").strftime("%d/%m/%Y")
+                    activity_data['start_time'] = datetime.strptime(activity_data['start_date_local'], "%Y-%m-%dT%H:%M:%SZ").strftime("%H:%M")
+                    activity_data['moving_time'] = f"{int(int(activity_data['moving_time'])/3600):02d}:{int(activity_data['moving_time']%3600/60):02d}"
+                    activity_data['elapsed_time'] = f"{int(int(activity_data['elapsed_time'])/3600):02d}:{int(activity_data['elapsed_time']%3600/60):02d}"
                     activity_data['average_speed'] = round(activity_data['average_speed']*3.6, 1)
                     activity_data['max_speed'] = round(activity_data['max_speed']*3.6, 1)
                     encoded_polyline =  polyline.decode(activity_data['map']['polyline'], 5)
@@ -305,15 +321,13 @@ def activity(request, activity_id):
                     points = []
                     for point in encoded_polyline:
                         points.append([point[0], point[1]])
+                    
 
-
-
-
-                    print(points)
+                    # print(points)
                     context = context | {
                         'activity': activity_data,
                         'secret': {'mapbox': MAPBOX_SECRET_KEY, 'google': GOOGLEMAPS_SECRET_KEY},
-                        'polyline': points
+                        'polyline': points,
                     }
                     return render(request, 'calc/strava/activity.html', context)
                 
