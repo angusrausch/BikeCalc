@@ -101,7 +101,9 @@ input {
 
 
 
-
+.error {
+    background-color: #fb6767;
+}
 
 body {
     margin: 0;

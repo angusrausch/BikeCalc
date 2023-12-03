@@ -7,9 +7,13 @@
 <body>
 
 
-    <br>
-    <h2>{{error}}</h2>
-    <br>
+    {% if error %}
+    <div class="error">
+        <br>
+        <h4>{{error}}</h4>
+        <br><br>
+    </div>
+    {% endif %}
 
     <div class="main_div">
         <form method="post">
@@ -18,9 +22,21 @@
             <h3>{{athlete.firstname}} {{athlete.lastname}}&emsp;<img src={{athlete.profile_medium}}></h3>
             <h4>{% if athlete.premium %}Premium{% else %}Free{% endif %}</h4>
             <body>
-                Total Ridden: {{ athlete.all_ride_totals.distance}} Km<br>
-                4 Weeks: {{ athlete.recent_ride_totals.distance}}Km<br>
-                Year to Date: {{ athlete.ytd_ride_totals.distance}}
+                Total Ridden: <span id="total_distance"></span>Km<br>
+                4 Weeks:  <span id="recent_distance"></span>Km<br>
+                Year to Date: <span id="ytd_distance"></span> Km
+                <script>
+                    total = {{ athlete.all_ride_totals.distance }}
+                    recent = {{ athlete.recent_ride_totals.distance}}
+                    ytd = {{ athlete.ytd_ride_totals.distance}}
+                    if (total.toString().length > 4) document.getElementById('total_distance').innerText = total.toLocaleString();
+                    else document.getElementById('total_distance').innerText = total.toString()
+                    if (recent.toString().length > 4)document.getElementById('recent_distance').innerText = recent.toLocaleString();
+                    else document.getElementById('recent_distance').innerText = recent.toString()
+                    if (ytd.toString().length > 4) document.getElementById('ytd_distance').innerText = ytd.toLocaleString();
+                    else document.getElementById('ytd_distance').innerText = ytd.toString();
+                </script>
+
 
                 <br><br>
                 Followers: {{athlete.follower_count}}<br>
@@ -28,9 +44,10 @@
                 Gear:
                 {% for bike in athlete.bikes %}
                     <div>
-                        &emsp;<a href="{{bike.id}}"> {{bike.name}}</a> {%if bike.primary%}Primary{% endif %}
+                        &emsp;<a href="{% url 'bike' bike.id %}">{{bike.name}}</a> {%if bike.primary%}Primary{% endif %}
                         &emsp;<small>Distance {{bike.converted_distance}}Km</small>
                     </div>
+                    
                 {% endfor %}
             </body>
         </form>

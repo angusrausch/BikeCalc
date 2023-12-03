@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+
+{% include "calc/head.html" %} 
+<html lang="en">
+<head>
+
+</head>
+<body>
+
+    &emsp;&emsp;&emsp;<button onclick="window.location.href='/strava'">Back</button>
+
+    {% if error %}
+    <div class="error">
+        <br>
+        <h4>{{error}}</h4>
+        <br><br>
+    </div>
+    {% endif %}
+
+    <div class="main_div">
+        <h2>{{bike.name}}</h2>
+        <h4>
+            Brand: {{bike.brand_name}}<br>
+            Model: {{bike.model_name}}
+        </h4>
+        &emsp;{{bike.description}}<br><br>
+        Distance: <span id="distance"></span>Km<br>
+        Alleged Weight: {{bike.weight}}Kg
+        
+                <script>
+                    distance = Math.round({{ bike.converted_distance }})
+                    if (distance.toString().length > 4) document.getElementById('distance').innerText = distance.toLocaleString();
+                    else document.getElementById('distance').innerText = distance.toString()
+
+                </script>
+        
+        
+        
+        
+    </div>
+
+    <br><br>
+
+</body>
+</html>
+

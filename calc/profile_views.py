@@ -70,8 +70,8 @@ def sign_up(request):
     return render(request, 'calc/authen/sign_up.html', context)
 
 def logout_view(request, prevpage="index"):
+    # revoke_strava_token(request.session.get('access'))
     logout(request)
-    revoke_strava_token(request.session.get('access_token'))
     keys_to_clear = ['access', 'token_type', 'expiry', 'refresh', 'athlete']
     for key in keys_to_clear:
         if key in request.session:

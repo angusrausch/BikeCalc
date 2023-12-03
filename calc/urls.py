@@ -25,6 +25,7 @@ urlpatterns = [
 
     #Strava
     path('strava', strava_views.main, name='strava-home'),
-    path('strava/<int:activity_id>/', strava_views.activity, name='activity'),
+    path('strava/activity/<int:activity_id>/', strava_views.activity, name='activity'),
+    path('strava/bike/<str:bike_id>/', strava_views.bike, name='bike')
 
 ]

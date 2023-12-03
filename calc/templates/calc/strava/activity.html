@@ -17,9 +17,13 @@
 
     &emsp;&emsp;&emsp;<button onclick="window.location.href='/strava'">Back</button>
 
-    <br>
-    <h2>{{error}}</h2>
-    <br>
+    {% if error %}
+    <div class="error">
+        <br>
+        <h4>{{error}}</h4>
+        <br><br>
+    </div>
+    {% endif %}
 
     <div class="main_div">
         <h2>{{activity.name}}</h2>

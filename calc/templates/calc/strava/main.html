@@ -4,11 +4,13 @@
 <html lang="en">
 <body>
 
-
-    <br>
-    {{error}}
-    <br>
-
+    {% if error %}
+    <div class="error">
+        <br>
+        <h4>{{error}}</h4>
+        <br><br>
+    </div>
+    {% endif %}
 <form>
     <button type="button" onclick="authorizeWithStrava()"><h2>Login with Strava</h2></button>
 </form>
@@ -18,7 +20,7 @@
 function authorizeWithStrava() {
     // Replace these values with your actual client ID and redirect URI
     const clientId = '117410';
-    const redirectUri = 'http://127.0.0.1:8000/calc/strava';
+    const redirectUri = "{{url}}";
     
     // Specify the desired scopes separated by space
     const scope = 'activity:read_all,profile:read_all';
