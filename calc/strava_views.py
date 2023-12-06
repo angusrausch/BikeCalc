@@ -210,7 +210,7 @@ def main(request):
                 # Replace these values with your actual Strava application credentials
                 client_id = CLIENT_ID
                 client_secret = CLIENT_SECRET_KEY
-                redirect_uri = 'http://127.0.0.1:8000/calc/strava'  # Should match the registered redirect URI
+                redirect_uri = CALLBACK_URL  # Should match the registered redirect URI
 
                 # Strava token endpoint URL
                 token_url = 'https://www.strava.com/oauth/token'
@@ -282,18 +282,19 @@ def activity(request, activity_id):
                         response.raise_for_status()
 
                     # activity file
-                    # print("TEST")
-                    # headers = {'Authorization': f'Bearer {access_token}'}
-                    # response = requests.get(f"https://www.strava.com/api/v3/activities/{activity_id}/streams?keys=time,watts,heartrate,cadence,grade_smooth&key_by_type=false", headers=headers)
-                    # if response.status_code == 200:
-                    #     file = response.json()
-                    #     for key, value in file.items():
-                    #         print(f"{key}: {value}")
-                    # elif response.status_code == 429:
-                    #     raise RetryError(response=response)
-                    # else:
-                    #     response.raise_for_status()
-                    # print("ENDTEST")
+                    print("TEST")
+                    headers = {'Authorization': f'Bearer {access_token}'}
+                    response = requests.get(f"https://www.strava.com/api/v3/activities/{activity_id}/streams?keys=time,watts,heartrate,cadence,grade_smooth&key_by_type=false", headers=headers)
+                    if response.status_code == 200:
+                        file = response.json()
+                        for key, value in file.items():
+                            # print(f"{key}: {value}")
+                            pass
+                    elif response.status_code == 429:
+                        raise RetryError(response=response)
+                    else:
+                        response.raise_for_status()
+                    print("ENDTEST")
                     # activity file
                     
 

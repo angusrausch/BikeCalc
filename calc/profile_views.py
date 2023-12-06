@@ -83,7 +83,7 @@ def profile(request):
     user = request.user 
 
     bikes = Bike.objects.values("bike_name", "Chainring__chainring_name", "Cassette__cassette_name", "tyre__tyre_size_name").filter(user=request.user.id)
-    print(bikes)
+    # print(bikes)
 
     context = {'user': user,
                'page': 'profile',

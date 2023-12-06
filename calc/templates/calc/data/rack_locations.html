@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+
+{% include "calc/head.html" %} 
+<html lang="en">
+<head>
+    <style>
+        #map {
+            width: 100%;
+            height: 800px;
+        }
+    </style>
+</head>
+<body>
+
+    &emsp;&emsp;&emsp;<button onclick="window.location.href='/strava'">Back</button>
+
+    {% if error %}
+    <div class="error">
+        <br>
+        <h4>{{error}}</h4>
+        <br><br>
+    </div>
+    {% endif %}
+
+    <div class="main_div">
+        <h2>Bike Rack Locations Brisbane</h2>
+        <div id='map'></div>
+        <!-- ... (your existing HTML code) ... -->
+
+
+        <script>
+            var rackLocations = {{ racks|safe }};
+            var tapLocations = {{ taps|safe }};
+            var googleMapsKey = null;  // Placeholder, will be updated dynamically
+            var map;
+            var openInfoWindow;
+        
+            function initMap() {
+                map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: -27.469705, lng: 153.025196 },
+                    zoom: 16
+                });
+        
+                // Function to create closures for each marker
+                function createRackMarkerClickHandler(marker, infowindow, location, address) {
+                    return function () {
+                        if (openInfoWindow) {
+                            openInfoWindow.close();
+                        }
+                        infowindow.setContent('<strong>' + location + '</strong><br>' + address);
+
+                        infowindow.open(map, marker);
+                        openInfoWindow = infowindow;
+                    };
+                }
+
+                
+        
+                // Iterate through rackLocations and add markers with custom label and info windows
+                for (var i = 0; i < rackLocations.length; i++) {
+                    var lat = parseFloat(rackLocations[i]["Latitude"]);
+                    var long = parseFloat(rackLocations[i]["Longitude"]);
+                    var location = rackLocations[i]["Location"];
+                    var address = rackLocations[i]['Address'];
+                    var size = rackLocations[i]["Rack type"];
+        
+                    // Create an information window for each marker
+                    var infowindow = new google.maps.InfoWindow();
+        
+                    // Create a marker with a custom label
+                    var marker = new google.maps.Marker({
+                        position: { lat: lat, lng: long },
+                        map: map,
+                        label: 'R', // Use the label property to set a character label on the marker
+                    });
+        
+                    // Attach click event to marker using the closure-generating function
+                    marker.addListener('click', createRackMarkerClickHandler(marker, infowindow, location, address));
+                }
+
+
+
+                function createTapMarkerClickHandler(marker, infowindow) {
+                    return function () {
+                        if (openInfoWindow) {
+                            openInfoWindow.close();
+                        }
+                        infowindow.setContent('<strong> Tap/Drinking Fountain </strong><br>');
+                        infowindow.open(map, marker);
+                        openInfoWindow = infowindow;
+                    };
+                }
+
+                for (var i = 0; i < tapLocations.length; i++) {
+                    var lat = parseFloat(tapLocations[i]["Y"]);
+                    var long = parseFloat(tapLocations[i]["X"]);
+        
+                    // Create an information window for each marker
+                    var infowindow = new google.maps.InfoWindow();
+        
+                    // Create a marker with a custom label
+                    var marker = new google.maps.Marker({
+                        position: { lat: lat, lng: long },
+                        map: map,
+                        label: 'T', // Use the label property to set a character label on the marker\
+                        icon: {
+                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png', // URL to blue marker icon
+                    scaledSize: new google.maps.Size(40, 40), // Adjust the size if needed
+                },
+                    });
+        
+                    // Attach click event to marker using the closure-generating function
+                    marker.addListener('click', createTapMarkerClickHandler(marker, infowindow));
+                }
+            }
+        
+            // Fetch the Google Maps API key dynamically
+            function fetchGoogleMapsKey() {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        if (xhr.status == 200) {
+                            var response = JSON.parse(xhr.responseText);
+                            googleMapsKey = response.google_maps_key;
+                            loadMapScript();
+                        }
+                    }
+                };
+                xhr.open("GET", "/get-google-maps-key/", true);
+                xhr.send();
+            }
+        
+            // Load the map after the Google Maps API script is loaded
+            function loadMapScript() {
+                var script = document.createElement('script');
+                script.src = 'https://maps.googleapis.com/maps/api/js?key=' + googleMapsKey + '&libraries=geometry&callback=initMap';
+                document.body.appendChild(script);
+            }
+        
+            // Call fetchGoogleMapsKey to dynamically fetch the Google Maps API key
+            fetchGoogleMapsKey();
+        </script>
+        
+
+
+        
+    </div>
+
+    <br><br>
+
+</body>
+</html>

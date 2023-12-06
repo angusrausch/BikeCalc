@@ -11,6 +11,14 @@ from django.views.decorators.csrf import csrf_protect
 from .models import Tyre_Size, Cassettes, Chainrings, Blog, user_feedback, Bike
 from django.contrib.auth.models import User
 
+from django.http import JsonResponse
+from mysecrets import MAPBOX_SECRET_KEY, GOOGLEMAPS_SECRET_KEY
+
+
+def get_google_maps_key(request):
+    return JsonResponse({'google_maps_key': GOOGLEMAPS_SECRET_KEY})
+    
+
 
 def index(request):
     context = {"page": "index"}

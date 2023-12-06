@@ -1,8 +1,10 @@
 from django.urls import path, include
 from django.contrib import admin
-from . import views, profile_views, fit_views, strava_views
+from . import views, profile_views, fit_views, strava_views, map_views
 
 urlpatterns = [
+    path('get-google-maps-key/', views.get_google_maps_key, name='get-google-maps-key'),
+
     #Main
     path("", views.index, name="index"),
     path('speed', views.speed, name="speed"),
@@ -26,6 +28,8 @@ urlpatterns = [
     #Strava
     path('strava', strava_views.main, name='strava-home'),
     path('strava/activity/<int:activity_id>/', strava_views.activity, name='activity'),
-    path('strava/bike/<str:bike_id>/', strava_views.bike, name='bike')
+    path('strava/bike/<str:bike_id>/', strava_views.bike, name='bike'),
 
+    #Maps
+    path('racks', map_views.racks, name='racks'),
 ]
