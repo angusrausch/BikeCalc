@@ -47,13 +47,7 @@ def racks(request):
                     tapy = float(tap_locations[tapindex - 1]['Y'])
                     tapx = float(tap_locations[tapindex - 1]['X'])
                     if tapy > -27.393515 or tapy < -27.569791 or tapx < 152.972104:
-
-                        print(f"Tapy: {tapy}")
-                        print("INDEX: ", tapindex)
-                        print("LEN: ", len(tap_locations))
                         tap_locations.pop(tapindex - 1)
-                        
-                        pass
                     else:
                         tapindex += 1
                 print(len(tap_locations))
