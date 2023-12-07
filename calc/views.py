@@ -7,10 +7,8 @@ from passlib.hash import pbkdf2_sha256
 from django.contrib.auth import login, authenticate
 from django.urls import path
 from django.views.decorators.csrf import csrf_protect
-
 from .models import Tyre_Size, Cassettes, Chainrings, Blog, user_feedback, Bike
 from django.contrib.auth.models import User
-
 from django.http import JsonResponse
 from mysecrets import MAPBOX_SECRET_KEY, GOOGLEMAPS_SECRET_KEY
 
@@ -23,7 +21,6 @@ def get_google_maps_key(request):
 def index(request):
     context = {"page": "index"}
     return render(request, 'calc/index.html',context)
-    #return HttpResponse("Hello, world. You're at the polls index.")
 
 
 def about_me(request):
@@ -34,24 +31,21 @@ def about_me(request):
     }
     return render(request, 'calc/about_me.html', context)
 
+
+
 def ratio(request):
     list_cassette = Cassettes.objects.all
     list_chainring = Chainrings.objects.all
     list_bikes = Bike.objects.filter(user=request.user.id).all
     context = {
+        "page": "ratio",
         "cassettes" : list_cassette,
         "chainrings_list" : list_chainring,
         "bikes" : list_bikes,
-        "page": "ratio"
         }
     
-
-
-
     if request.method == "POST":
-        
         try:
-
             data = request.POST
            
             bike_input = data.get("bike_selection")
@@ -123,25 +117,10 @@ def ratio(request):
                 cassette_sprockets.sort(reverse=True)
                 #---
                 
-
-
-
-
-
         except ValueError:
-            #print("Please input only numbers spaced by ,")
-            temp_context = {
-                "warning": "Please input only numbers spaced by ,"
-            }
-            context = context | temp_context
-
-
+            context['warning'] = "Please input only numbers spaced by ,"
         except Exception as error:
-            #print(error)
-            temp_context = {
-                "warning": error
-            }
-            context = context | temp_context
+            context['warning'] = error
 
         else:
             gear_ratios = []
@@ -151,7 +130,6 @@ def ratio(request):
                     temp_ratios.append(sprocket)
                 gear_ratios.append([chainring, temp_ratios])
 
-
             ratios = []
             for ratio in gear_ratios:
                 temp_ratios = []
@@ -159,8 +137,6 @@ def ratio(request):
                     math_ratio = ratio[0]/sprocket
                     temp_ratios.append(round(math_ratio, 2))
                 ratios.append([ratio[0], temp_ratios])
-            
-        
             
             temp_context = {
                 "cassette_selection" : selected_cassette,
@@ -173,6 +149,7 @@ def ratio(request):
             context = context | temp_context
     
     return render(request, 'calc/ratios.html', context)
+
 
 def rollout(request):
     list_tyres = Tyre_Size.objects.all
@@ -192,9 +169,7 @@ def rollout(request):
     
 
     if request.method == "POST":
-        
         try:
-
             data = request.POST
            
             
@@ -290,17 +265,9 @@ def rollout(request):
             else: multiplier = 0.0393700787
             #---
         except ValueError:
-            #print("Please input only numbers spaced by ,")
-            temp_context = {
-                "warning": "Please input only numbers spaced by ,"
-            }
-            context = context | temp_context
+            context['warning'] = "Please input only numbers spaced by ,"
         except Exception as error:
-            #print(error)
-            temp_context = {
-                "warning": error
-            }
-            context = context | temp_context
+            context['warning'] = error
         else: 
                 
 
@@ -360,11 +327,7 @@ def speed(request):
 
 
     if request.method == "POST":
-        
-
-
         try:
-
             data = request.POST
            
             bike_input = data.get("bike_selection")
@@ -481,18 +444,9 @@ def speed(request):
 
 
         except ValueError:
-            #print("Please input only numbers spaced by ,")
-            temp_context = {
-                "warning": "Please input only numbers spaced by ,"
-            }
-            context = context | temp_context
-
-        # except Exception as error:
-        #     #print(error)
-        #     temp_context = {
-        #         "warning": error
-        #     }
-        #     context = context | temp_context
+            context['warning'] = "Please input only numbers spaced by ,"
+        except Exception as error:
+            context['warning'] = error
         else:
             gear_ratios = []
             for chainring in chainring_size:
@@ -536,12 +490,6 @@ def speed(request):
 
     return render(request, 'calc/speed.html', context)
 
-    '''
-    lass Wheel_size(models.Model):
-    Wheel_size_name = models.CharField(max_length=100)
-    def __str__(self):
-        return self.Wheel_size_name
-        '''
     
 def feedback(request):
 
@@ -552,10 +500,9 @@ def feedback(request):
         feedback_body = data.get("text_body")
         current_datetime = datetime.now()
         current_date = current_datetime.strftime('%Y-%m-%d')
-        #print("TITLE: ", user_feedback, "\nBody: ", feedback_body, "Contact: ",user_contact)
 
         feedback_instance = user_feedback(
-            title=feedback_title,  # Use the correct field names
+            title=feedback_title,  
             contact=user_contact,
             body=feedback_body,
             date=current_date

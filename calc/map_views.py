@@ -15,8 +15,6 @@ def racks(request):
         'page': 'map-home',
         'google_maps_key': GOOGLEMAPS_SECRET_KEY,
     }
-
-    # if request.user.is_authenticated:
     try:
         response = requests.get('https://www.data.brisbane.qld.gov.au/data/api/3/action/datastore_search?resource_id=4a67a16d-ffc7-4831-a77b-64d8ac42459e&limit=1000')
 
@@ -39,7 +37,6 @@ def racks(request):
             data = response.json()
             if data.get('success', False):
                 tap_locations = data['result']['records']
-                print(len(tap_locations))
                 
                 tapindex = 0
                 while tapindex < len(tap_locations):
@@ -50,10 +47,6 @@ def racks(request):
                         tap_locations.pop(tapindex - 1)
                     else:
                         tapindex += 1
-                print(len(tap_locations))
-
-                # for item in tap_locations:
-                #     print(item)
             else:
                 raise Exception(data)
 
@@ -70,5 +63,3 @@ def racks(request):
         context['racks'], context['taps'] = rack_locations, tap_locations
         # print(rack_locations)
         return render(request, 'calc/data/rack_locations.html', context)
-    # else:
-    #     return redirect('login')
