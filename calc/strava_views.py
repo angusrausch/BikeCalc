@@ -261,7 +261,7 @@ def main(request):
                 return main_data(request, context)
             
         
-        return (request, 'calc/strava/main.html', context)
+        return render(request, 'calc/strava/main.html', context)
         
         
     else:
