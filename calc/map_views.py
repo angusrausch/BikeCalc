@@ -33,12 +33,31 @@ def racks(request):
 
 
         
-        response = requests.get('https://www.data.brisbane.qld.gov.au/data/api/3/action/datastore_search?resource_id=57b9ba99-16ea-4eb5-b21b-049c8f880377&limit=500')
+        response = requests.get('https://www.data.brisbane.qld.gov.au/data/api/3/action/datastore_search?resource_id=57b9ba99-16ea-4eb5-b21b-049c8f880377&limit=2000')
 
         if response.status_code == 200:
             data = response.json()
             if data.get('success', False):
                 tap_locations = data['result']['records']
+                print(len(tap_locations))
+                
+                tapindex = 0
+                while tapindex < len(tap_locations):
+                    
+                    tapy = float(tap_locations[tapindex - 1]['Y'])
+                    tapx = float(tap_locations[tapindex - 1]['X'])
+                    if tapy > -27.393515 or tapy < -27.569791 or tapx < 152.972104:
+
+                        print(f"Tapy: {tapy}")
+                        print("INDEX: ", tapindex)
+                        print("LEN: ", len(tap_locations))
+                        tap_locations.pop(tapindex - 1)
+                        
+                        pass
+                    else:
+                        tapindex += 1
+                print(len(tap_locations))
+
                 # for item in tap_locations:
                 #     print(item)
             else:
