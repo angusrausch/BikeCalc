@@ -1,0 +1,49 @@
+{% include "calc/head.html" %}
+{% load static %}
+
+{% if user.is_authenticated %}
+  {% if user.is_staff %}
+    <!DOCTYPE html>
+
+    <button type="submit" onclick="window.location.href='/table/{{name}}/'">Back</button>
+    <div class="main_div">
+      <form method="post">
+        {% csrf_token %}
+        {% for item in table_data %}
+          <fieldset>
+            {% if item.0 == 'id' %}
+              <p>{{ item.0 }}<br>{{ item.1 }}<br>{{ item.2 }}</p>
+            {% else %}
+              {% if item.2 == 0 %}
+                <p>
+                  {{ item.0 }}<br>
+                  <input type="number" name="{{ item.0 }}" value="{{ item.1 }}"><br>
+                  Integer
+                </p>
+              {% endif %}
+              {% if item.2 == 1 %}
+                <p>
+                  {{ item.0 }}<br>
+                  <input type="text" name="{{ item.0 }}" value="{{ item.1 }}"><br>
+                  String
+                </p>
+              {% endif %}
+              {% if item.2 == 2 %}
+                <p>
+                  {{ item.0 }}<br>
+                  <select name="{{ item.0 }}" id="{{ item.0 }}">
+                    <option value="1" {% if item.1 %} selected {% endif %}>True</option>
+                    <option value="0" {% if not item.1 %} selected {% endif %}>False</option>
+                  </select>
+                  Boolean
+                </p>
+              {% endif %}
+            {% endif %}
+          </fieldset>
+        {% endfor %}
+        <button type="submit">Save</button><small>Warning: Editing some Int values may change table relation. Look for '_id'</small>
+      </form>
+    </div>
+
+  {% endif %}
+{% endif %}

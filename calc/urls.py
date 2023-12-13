@@ -19,6 +19,7 @@ urlpatterns = [
     path("profile", profile_views.profile, name="profile"),
     path("logout/<str:prevpage>/", profile_views.logout_view, name="logout"),
     path('table/<str:table_name>/', profile_views.table_view, name='table_view'),
+    path('edittable/<str:table_name>/<int:id>/', profile_views.edittable_view, name='edittable_view'),
     path('createblog', profile_views.create_blog, name='create_blog'),
     path('createbike', profile_views.create_bike, name="create_bike"),
 

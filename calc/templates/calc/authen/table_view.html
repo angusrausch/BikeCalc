@@ -1,7 +1,13 @@
-<a href="/calc/profile">Back</a>
+{% include "calc/head.html" %}
+{% load static %}
 
-
+{% if user.is_authenticated %}
+  {% if user.is_staff %}
+    <!DOCTYPE html>
+    &emsp;
+    <button type="submit" onclick="window.location.href='/calc/profile'">Back</button>
 {% if name %}
+    <div class="main_div">
     <h2>{{name}}</h2>
     <table>
         <tr>
@@ -16,19 +22,22 @@
                 {% endfor %}
             </tr>
         {% endfor %} -->
-        <form>
+        <!-- <form> -->
         {% for row in rows %}
         <tr>
-            <td><button type="submit" name="idnum" value="{{row.0}}">Edit</button></td>
+            <td><button type="submit" onclick="window.location.href='/calc/edittable/{{ table_name }}/{{ row.0 }}/'" value="{{ row.0 }}">Edit</button></td>
             {% for item in row.1 %}
                 <td>{{item}}</td>
             {% endfor %}
         </tr>
         {% endfor %}
-        </form>
+        <!-- </form> -->
 
 
     </table>
+    </div>
 
 
+{% endif %}
+{% endif %}
 {% endif %}
