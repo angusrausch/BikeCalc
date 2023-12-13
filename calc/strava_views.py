@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 import requests
 from requests.exceptions import RetryError, HTTPError, RequestException
 from mysecrets import CLIENT_SECRET_KEY, CLIENT_ID, MAPBOX_SECRET_KEY, GOOGLEMAPS_SECRET_KEY, CALLBACK_URL
+from.fitter import powerCurveMaker
 import time
 import polyline
 import math
@@ -293,21 +294,28 @@ def activity(request, activity_id):
                 else:
                     response.raise_for_status()
 
-                # activity file
+                # # activity file
                 # print("TEST")
                 # headers = {'Authorization': f'Bearer {access_token}'}
                 # response = requests.get(f"https://www.strava.com/api/v3/activities/{activity_id}/streams?keys=time,watts,heartrate,cadence,grade_smooth&key_by_type=false", headers=headers)
                 # if response.status_code == 200:
                 #     file = response.json()
-                #     for key, value in file.items():
-                #         # print(f"{key}: {value}")
-                #         pass
+                #     # for key, value in file.items():
+                #     #     print(f"{key}: {value}")
+                #     #     pass
+
+                #     if 'watts' in file:
+                #         print(file['watts']) 
+                #         print("POWER")
+                #         print(type(file['watts']['data']))
+                #         power_curve = powerCurveMaker(file['watts']['data'])
+                #         print(power_curve[3600])
                 # elif response.status_code == 429:
                 #     raise RetryError(response=response)
                 # else:
                 #     response.raise_for_status()
                 # print("ENDTEST")
-                # activity file
+                # # activity file
                 
 
             except HTTPError as http_error:
@@ -408,62 +416,49 @@ def bike(request, bike_id):
 
 
 
-@csrf_protect
-def club(request, bike_id):
-    context = {'page': 'strava-home'}
-    if request.user.is_authenticated:
-        if 'access' in request.session:
+# @csrf_protect
+# def club(request, bike_id):
+#     context = {'page': 'strava-home'}
+#     if request.user.is_authenticated:
+#         if 'access' in request.session:
 
-            try:
-                if time.time() >= request.session.get('expiry') - 3600:
-                    refresh_token(request)
-
-
+#             try:
+#                 if time.time() >= request.session.get('expiry') - 3600:
+#                     refresh_token(request)
 
 
-                access_token = request.session.get('access')
-                headers = {'Authorization': f'Bearer {access_token}'}
-                response = requests.get(f"https://www.strava.com/api/v3/gear/{bike_id}", headers=headers)
-
-                if response.status_code == 200:
-                    bike_data = response.json()
-                elif response.status_code == 429:
-                    raise RetryError(response=response)
-                else:
-                    response.raise_for_status()
-
-            except HTTPError as http_error:
-                if http_error.response.status_code == 404:
-                    context['error'] = "Activity not found. This may be because it is another athletes activity"
-                else:
-                    context['error'] = f"HTTP error: {http_error}"
-                return render(request, 'calc/strava/main.html', context)
-            except RetryError as retry_error:
-                context['error'] = f"Rate limit exceeded: {retry_error}"
-                return render(request, 'calc/strava/main.html', context)
-            else:
 
 
-                context = context | {
-                    'bike': bike_data
+#                 access_token = request.session.get('access')
+#                 headers = {'Authorization': f'Bearer {access_token}'}
+#                 response = requests.get(f"https://www.strava.com/api/v3/gear/{bike_id}", headers=headers)
+
+#                 if response.status_code == 200:
+#                     bike_data = response.json()
+#                 elif response.status_code == 429:
+#                     raise RetryError(response=response)
+#                 else:
+#                     response.raise_for_status()
+
+#             except HTTPError as http_error:
+#                 if http_error.response.status_code == 404:
+#                     context['error'] = "Activity not found. This may be because it is another athletes activity"
+#                 else:
+#                     context['error'] = f"HTTP error: {http_error}"
+#                 return render(request, 'calc/strava/main.html', context)
+#             except RetryError as retry_error:
+#                 context['error'] = f"Rate limit exceeded: {retry_error}"
+#                 return render(request, 'calc/strava/main.html', context)
+#             else:
+
+
+#                 context = context | {
+#                     'bike': bike_data
                     
-                }
-
-
-
-                # response = requests.get(f"https://www.strava.com/api/v3/routes/3128270842261936740", headers=headers)
-                # raw = response.json()
-                # segments = raw['segments']
-                # raw['segments'] = ""
-                # for key, value in raw.items():
-                #     print(f"{key}: {value}\n")
-                # for segment in segments:
-                #     print(segment, "\n")
+#                 }    
                 
-
-                
-                return render(request, 'calc/strava/bike.html', context)
+#                 return render(request, 'calc/strava/bike.html', context)
             
-        else: return redirect('strava-home')
+#         else: return redirect('strava-home')
             
-    else: return redirect('login')
+#     else: return redirect('login')

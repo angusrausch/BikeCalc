@@ -3,6 +3,9 @@ import math
 import threading
 import queue
 import concurrent.futures
+import numpy as np
+from numba import jit, prange
+
 from datetime import datetime, timezone, timedelta
 # from timezonefinder import TimezoneFinder 
 #python -m auto_py_to_exe
@@ -174,74 +177,38 @@ def processing(fit_file, crank):
 
 
 
-def CommandLine():
-    print("What is the file name")
-    fileName = input()
-    if ".fit" not in fileName: fileName += ".fit"
+@jit(nopython=True, parallel=True)
+def powerCurveEfficient(recordArray, power_curve):
+    length = len(recordArray)
+    maxavg = 0.0  # Initial value for maxavg
 
-    try:
+    for l in prange(1, length + 1):  # Adjust the range to avoid zero-size arrays
+        maxavg = 0.0
 
-        fit_file = FitFile(fileName)
+        for i in range(length - l + 1):
+            subarray = recordArray[i:i + l]
 
+            # Replace None values with zeros
+            subarray = np.array([value if value is not None else 0.0 for value in subarray], dtype=np.float64)
 
+            # Calculate the average power for the subarray
+            total = np.sum(subarray)
+            count = np.count_nonzero(subarray)
+            avg_power = total / count if count > 0 else 0
 
-        print("File found. Processing (This may take a while)")
+            maxavg = max(maxavg, avg_power)
 
-        recordArray = []
-        recordNumber = 0
-        for record in fit_file.get_messages("record"):
-            dict = record.get_values()
-            recordArray.append(dict)
-            recordNumber += 1
+        # Update power_curve with the maximum average power for the given subarray size
+        power_curve[l - 1] = maxavg
+        # print(f"Maximum Average Power for subarray size {l}: {maxavg}")
 
-        
-        averageReturn = averageFinder(recordArray)
-        averageSpeed = averageReturn[1]
-        averagePower = averageReturn[0]
-        averageHR = averageReturn[2]
+    return power_curve
 
-        lengths = [1,3,5,10,20,60, 300,1200]
-        maxPower = maxPowerFinder(recordArray, lengths)
-        steepest = gradeFinder(recordArray)
-        fastest = speedFinder(recordArray)
-        maxTorque = torqueFinder(recordArray)
+def powerCurveMaker(recordArray):
+    recordArray = np.array(recordArray, dtype=np.float64)  # Convert to NumPy array with specific dtype
+    length = len(recordArray)
+    power_curve = np.zeros(length, dtype=np.float64)
 
-        date = recordArray[0]['timestamp']
-        timeDelta = recordArray[len(recordArray) - 1]['timestamp'] - recordArray[0]['timestamp']
-        distance = round(recordArray[len(recordArray) - 1]['distance'] / 1000, 1)
-        altGain = recordArray[len(recordArray) - 1]['ascent']
+    power_curve = powerCurveEfficient(recordArray, power_curve)
 
-
-
-
-        print("\n\n\n")
-        print(f"Ride on {date.day}/{date.month}/{date.year}")
-        print(f"Riding time is: {timeDelta}\nDistance travelled: {distance}Km\nElevation gained: {altGain}m")
-        print(f"Average speed: {averageSpeed}Km/h\nAverage Power: {averagePower}w\nAverage heart rate: {averageHR}bpm")
-
-        for i in range(len(lengths)):
-                    if maxPower[i][0] > 0 or maxPower[i][1] != None:
-                        if lengths[i] <= 60:
-                            print(f"Highest power for {lengths[i]} Seconds: {maxPower[i][0]} W at {round(maxPower[i][1]['distance'] / 1000, 1)}km")
-                        else:
-                            print(f"Highest power for {int(round(lengths[i]/60, 0))} Minutes: {maxPower[i][0]} W at {round(maxPower[i][1]['distance'] / 1000, 1)}km")
-            
-        print(f"Steepest grade of {steepest['grade']}% at a speed of {round(steepest['enhanced_speed']*3.6, 1)}km/h, and cadence of {steepest['cadence']}")
-        print(maxTorque)
-        print(f"Highest Torque was: {maxTorque['torque']}Nm, this was at {maxTorque['power']}W and {maxTorque['cadence']}rpm on a {maxTorque['grade']}% grade. Thats {round((maxTorque['torque']/0.1725)/9.80665, 1)}Kg of force.")
-
-    except FileNotFoundError:
-        print("File not found\nGoodbye")
-
-
-
-
-if __name__ == "__main__":
-    CommandLine()
-    
-    #app = GUIApp()
-    #app.run()
-        
-
-
-    
+    return power_curve

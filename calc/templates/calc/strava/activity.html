@@ -5,7 +5,6 @@
 {% include "calc/head.html" %} 
 <html lang="en">
 <head>
-    <!-- <script src="https://maps.googleapis.com/maps/api/js?key=&libraries=geometry&callback=initMap" defer async></script> -->
     <style>
         #map {
             width: 100%;
@@ -26,7 +25,7 @@
     {% endif %}
 
     <div class="main_div">
-        <h2>{{activity.name}}</h2>
+        <h2><a href="https://www.strava.com/activities/{{activity.id}}" style="color: black;">{{activity.name}}</a></h2>
         <h4>
             Date: {{activity.start_date}}&emsp;Time: {{activity.start_time}}<br>
             Distance: {{activity.distance}}Km&emsp;Moving Time: {{activity.moving_time}}
