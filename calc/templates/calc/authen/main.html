@@ -88,32 +88,32 @@
                         <fieldset style="border: 0px none; display: flex; align-items: center;">
                             <label style="margin-right: 10px;">Chainring Selection:</label>
                             <select name="chainring_selection">
-                                <option disabled="true" selected>-- Manual Input --</option>
+                                <option  value="manual" selected>-- Manual Input --</option>
                                 {% for result in chainrings %}
                                 <option value="{{ result.id }}">{{ result.chainring_name }}</option>
                                 {% endfor %}
                             </select>
                             <br>
-                            <!-- <small> Manual Input:</small>
+                            <small style="font-size: xx-small;"> Manual Input:</small>
                             <div style="margin-top: 10px;">
-                                <input type="text" name="manual_chainring">
-                            </div> -->
+                                <input style="font-size: xx-small;"size="10" type="text" name="manual_chainring">
+                            </div>
                         </fieldset>
 
                         <fieldset style="border: 0px none; display: flex; align-items: center;">
                             <label style="margin-right: 10px;">Casseette Selection:</label>
                             <select name="cassette_selection">
-                                <option disabled="true" selected>-- Manual Input --</option>
+                                <option value="manual" selected>-- Manual Input --</option>
                                 {% for result in cassettes %}
                                 <option value="{{ result.id }}">{{ result.cassette_name }}</option>
                                 {% endfor %}
                             </select>
                             <br>
-                            <!-- <small> Manual Input:</small>
+                            <small style="font-size: xx-small;"> Manual Input:</small>
                             <div style="margin-top: 10px;">
                                 
-                                <input type="text" name="manual_cassette">
-                            </div> -->
+                                <input style="font-size: xx-small;"size="10" type="text" name="manual_cassette">
+                            </div>
                         </fieldset>
                         &emsp;&emsp;<button style="font-size: large;" type="submit" name="type" value="2">Create Bike</button>
                         <br><p style="color: red;">&emsp;{{warning}}</p>

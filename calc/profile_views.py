@@ -117,11 +117,79 @@ def profile(request):
 
                 #Chainring
                 chainring_input = data.get("chainring_selection")
-                if chainring_input == None: raise Exception("No chainring selected")
+                if chainring_input == "manual": 
+                    manual_chainring = data.get("manual_chainring") 
+                    if manual_chainring == None or manual_chainring == "":
+                        raise Exception("No chainring selected")
+                    else: 
+                        selected_chainring = manual_chainring
+                        chainring_size_nonint = selected_chainring.split(",")
+                        chainring_size = []
+                        for chainring in chainring_size_nonint:
+                            chainring_size.append(int(chainring))
+                        chainring_size.sort(reverse=True)
+                        input_large = chainring_size[0]
+                        input_middle = None
+                        input_small = None
+                        if len(chainring_size) == 2:
+                            input_small = chainring_size[1]
+                        elif len(chainring_size) == 3:
+                            input_middle = chainring_size[1]
+                            input_small = chainring_size[2]
+                        selected_chainring_object = Chainrings.objects.filter(large=input_large, middle=input_middle, small=input_small).values("id")
+                        if len(selected_chainring_object) == 0: #Nothing exists
+                            chainring_name = f"User Chainring: {input_large}, {input_middle}, {input_small}"
+                            chainring_instance = Chainrings(chainring_name=chainring_name, large=input_large, middle=input_middle, small=input_small, user_generated=True)
+                            chainring_instance.save()
+                            selected_chainring_object = Chainrings.objects.filter(large=input_large, middle=input_middle, small=input_small).values("id")
+
+
+                        
+                        chainring_selection = selected_chainring_object[0]['id']
+                            
+                        
+                        
+                else:
+                    chainring_selection = chainring_input
 
                 #Cassette
                 cassette_input = data.get("cassette_selection")
-                if cassette_input == None: raise Exception("No cassette selected")
+                if cassette_input == "manual": 
+                    manual_cassette = data.get("manual_cassette") 
+                    if manual_cassette == None or manual_cassette == "":
+                        raise Exception("No cassette selected")
+                    else:
+
+                        selected_cassette = manual_cassette
+
+                        cassette_sprockets_nonint = selected_cassette.split(",")
+                        cassette_sprockets = []
+                        for sprocket in cassette_sprockets_nonint:
+                            cassette_sprockets.append(int(sprocket))
+                        cassette_sprockets.sort()
+                        speeds = len(cassette_sprockets)
+                        cassette = ""
+                        for i in range(speeds):
+                            cassette += str(cassette_sprockets[i])
+                            if i < speeds - 1: cassette += ","
+                        selected_cassette_object = Cassettes.objects.filter(sprockets=cassette).values("id")
+                        if len(selected_cassette_object) == 0: #Nothing exists
+                            cassette_name = f"User Cassette: {cassette_sprockets[0]}-{cassette_sprockets[len(cassette_sprockets) - 1]}"
+                            cassette_instance = Cassettes(cassette_name=cassette_name, speeds=speeds, sprockets=cassette, user_generated=True)
+                            cassette_instance.save()
+                            selected_cassette_object = Cassettes.objects.filter(sprockets=cassette).values("id")
+
+
+
+                        
+                        cassette_selection = selected_cassette_object[0]['id']
+                            
+                        
+                        
+                else:
+                    cassette_selection = cassette_input
+
+                
                 
                 #Tyre
                 tyre_input = data.get("tyre_selection")
@@ -135,8 +203,8 @@ def profile(request):
                 context = context | temp_context
                 
             else: 
-                chainring_instance = Chainrings.objects.get(id=chainring_input)
-                cassette_instance = Cassettes.objects.get(id=cassette_input)
+                chainring_instance = Chainrings.objects.get(id=chainring_selection)
+                cassette_instance = Cassettes.objects.get(id=cassette_selection)
                 tyre_instance = Tyre_Size.objects.get(id=tyre_input)
 
                 # Create Bike instance and save

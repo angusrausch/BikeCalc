@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 
 class Cassettes(models.Model):
-    cassette_name = models.CharField(max_length=20)
+    cassette_name = models.CharField(max_length=20, null=True)
     speeds = models.IntegerField()
     sprockets = models.CharField(max_length=64)
     user_generated = models.BooleanField()
@@ -12,7 +12,7 @@ class Cassettes(models.Model):
         return self.cassette_name
     
 class Chainrings(models.Model):
-    chainring_name = models.CharField(max_length=16)
+    chainring_name = models.CharField(max_length=16, null=True)
     large = models.IntegerField()
     middle = models.IntegerField(null=True)
     small = models.IntegerField(null=True)
