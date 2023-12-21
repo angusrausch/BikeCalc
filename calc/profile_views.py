@@ -49,7 +49,7 @@ def sign_up(request):
         print(input_fname, input_lname)
 
         try:
-            if input_username == "" or input_fname == "" or input_lname == "" or input_email == "" or input_password == "" or input_con_password == "":
+            if any(value == "" for value in [input_username, input_fname, input_lname, input_email, input_password, input_con_password]):
                 raise Exception("Please fill all fields")
             if User.objects.filter(username=input_username).exists():
                 raise Exception("Username already in use")
@@ -83,7 +83,6 @@ def profile(request):
     user = request.user 
 
     bikes = Bike.objects.values("bike_name", "Chainring__chainring_name", "Cassette__cassette_name", "tyre__tyre_size_name").filter(user=request.user.id)
-    # print(bikes)
 
     context = {'user': user,
                'page': 'profile',
@@ -220,104 +219,57 @@ def profile(request):
 def table_view(request, table_name):
     if request.user.is_staff:
         if table_name:
-        
-            if table_name == "user_feedback":
-                returned_table = user_feedback.objects.values('id', 'title', 'contact', 'body', 'date')
-                columns = ['', 'Title', 'Body', 'Contact', 'date']
-                table = []
-                for row in returned_table:
-                    table.append([row['id'], [row['title'], row['body'], row['contact'], row['date'].strftime("%d/%m/%y")]])
-                
-                context = {
-                    'name': "Feedback",
-                    'columns': columns,
-                    'rows': table
-                }
-            
-            elif table_name == "cassettes":
-                returned_table = Cassettes.objects.values('id', 'cassette_name', 'speeds', 'sprockets')
-                columns = ['', 'Name', 'Speed', 'Sprockets']
-                table = []
-                for row in returned_table:
-                    table.append([row['id'], [row['cassette_name'], row['speeds'], row['sprockets']]])
-                
-                context = {
-                    'name': "Cassettes",
-                    'columns': columns,
-                    'rows': table
-                }
 
-            elif table_name == "users":
-                if request.user.is_superuser:
-    
-                    returned_table = User.objects.values('id', 'username', 'first_name', 'last_name', 'is_superuser', 'is_staff', 'email')
-                    columns = ['', 'Username', 'Name', 'Email', 'Type']
-                    table = []
-                    for row in returned_table:
-                        if row['is_superuser'] is True: user_type = "Owner"
-                        elif row['is_staff'] is True: user_type = "Staff"
-                        else: user_type = "User"
-                        name = row['first_name'] + " " + row['last_name']
-                        table.append([row['id'], [row['username'], name, row['email'], user_type]])
+            table_dict = {
+            'user_feedback': user_feedback,
+            'cassettes': Cassettes,
+            'users': User,
+            'chainrings': Chainrings,
+            'tyres': Tyre_Size,
+            'bikes': Bike,
+            }
+            table = table_dict.get(table_name)
+            returned_data = table.objects.all()
+
+
+            headers = []
+            for field_name, field_value in returned_data[0].__dict__.items():
+                
+                if field_name == '_state':
+                    continue
+                if field_name == 'id':
+                    headers.append("")
+                    continue
+                headers.append(field_name)
+
+
+            full_table_array = []
+
+            for item in returned_data:
+                table_data_array = []
+                id = 0
+                for field_name, field_value in item.__dict__.items():
                     
-                    context = {
-                        'name': "Users",
-                        'columns': columns,
-                        'rows': table
-                    }
-                else: return redirect('profile')
-            elif table_name == "chainrings":
-                returned_table = Chainrings.objects.values('id', 'chainring_name', 'large', 'middle', 'small')
-                columns = ['', 'Name', 'Sizes']
-                table = []
-                for row in returned_table:
+                    if field_name == '_state':
+                        continue
+                    if field_name == 'id':
+                        id = field_value
+                        continue
 
-                    chainring_size = []
-                    chainring_size.append(row["large"])
-                    if row["middle"] != 0 and  row['middle'] is not None: chainring_size.append(row['middle'])
-                    if row["small"] != 0 and row['small'] is not None: chainring_size.append(row['small'])
-                    chainring_cogs = ""
-                    for i in range(len(chainring_size)):
-                        chainring_cogs += str(chainring_size[i])
-                        if i  + 1 < len(chainring_size): chainring_cogs += ","
+                    table_data_array.append( field_value)
 
-                    table.append([row['id'], [row['chainring_name'], chainring_cogs]])
-                
-                context = {
-                    'name': "Chainring",
-                    'columns': columns,
-                    'rows': table
+                full_table_array.append([id, table_data_array])
+            print(full_table_array)
+            print(headers)
+            context = {
+                    'name': table_name,
+                    'columns': headers,
+                    'rows': full_table_array
                 }
+            context['page'] =  'profile'
+            context['table_name'] = table_name
+            return render(request, "calc/authen/table_view.html", context)
 
-            elif table_name == "tyres":
-                returned_table = Tyre_Size.objects.values('id', 'tyre_size_name', 'tyre_circumference')
-                columns = ['', 'Name', 'Circumference']
-                table = []
-                for row in returned_table:
-                    table.append([row['id'], [row['tyre_size_name'], row['tyre_circumference']]])
-                
-                context = {
-                    'name': "Tyres",
-                    'columns': columns,
-                    'rows': table
-                }
-
-            elif table_name == "bikes":
-                returned_table = Bike.objects.values("id", "bike_name", "Chainring__chainring_name", "Cassette__cassette_name", "tyre__tyre_size_name", "user__first_name", 'user__last_name')
-                columns = ['', 'Name', 'Chainring', 'Cassette', 'Tyre', 'User']
-                table = []
-                for row in returned_table:
-                    table.append([row['id'], [row['bike_name'], row['Chainring__chainring_name'], row['Cassette__cassette_name'], row['tyre__tyre_size_name'], row['user__first_name'] + ' ' + row['user__last_name']]])
-                
-                context = {
-                    'name': "Bikes",
-                    'columns': columns,
-                    'rows': table
-                }
-
-        context['page'] =  'profile'
-        context['table_name'] = table_name
-        return render(request, "calc/authen/table_view.html", context)
     else: return redirect('profile')
 
 def edittable_view(request, table_name, id):
@@ -356,9 +308,10 @@ def edittable_view(request, table_name, id):
                     additional_value = 2
                 else:
                     continue  
-
+                
                 table_data_array.append([field_name, field_value, additional_value])
 
+            print(table_data_array)
             context['table_data'] = table_data_array
             context['name'] = table_name
 
@@ -435,9 +388,3 @@ def create_blog(request):
         return render(request, 'calc/authen/create_blog.html', context)
     else: return redirect('profile')
 
-
-def create_bike(request):
-    context = {
-        'page': "index"
-    }
-    return render(request, 'calc/authen/create_bike.html', context)

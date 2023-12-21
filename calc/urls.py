@@ -21,7 +21,6 @@ urlpatterns = [
     path('table/<str:table_name>/', profile_views.table_view, name='table_view'),
     path('edittable/<str:table_name>/<int:id>/', profile_views.edittable_view, name='edittable_view'),
     path('createblog', profile_views.create_blog, name='create_blog'),
-    path('createbike', profile_views.create_bike, name="create_bike"),
 
     #Fit File Viewer
     path('fittool', fit_views.fitviewer, name='fit-home'),
