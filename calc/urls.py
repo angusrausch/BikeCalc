@@ -29,6 +29,8 @@ urlpatterns = [
     path('strava', strava_views.main, name='strava-home'),
     path('strava/activity/<int:activity_id>/', strava_views.activity, name='activity'),
     path('strava/bike/<str:bike_id>/', strava_views.bike, name='bike'),
+    path('strava/segments', strava_views.segments, name = 'segments'),
+    path('strava/segments/<int:id>', strava_views.segments, name = 'segments'),
 
     #Maps
     path('racks', map_views.racks, name='racks'),

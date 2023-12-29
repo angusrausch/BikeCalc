@@ -80,6 +80,7 @@ def refresh_token(request):
     revoke_strava_token(request)
     return redirect('strava-home')
 
+@login_required
 def main_data(request, context):
     try:
         access_token = request.session.get('access')
@@ -270,7 +271,7 @@ def main(request):
     else:
         return redirect('login')
     
-
+@login_required
 @csrf_protect
 def activity(request, activity_id):
     context = {'page': 'strava-home'}
@@ -312,9 +313,7 @@ def activity(request, activity_id):
                 else:
                     response.raise_for_status()
 
-                for comment in comments_data:
-                    for key, value in comment.items():
-                        print(f"{key}: {value}")
+            
 
                 # # activity file
                 # print("TEST")
@@ -376,7 +375,7 @@ def activity(request, activity_id):
             
     else: return redirect('login')
 
-
+@login_required
 @csrf_protect
 def bike(request, bike_id):
     context = {'page': 'strava-home'}
@@ -437,4 +436,88 @@ def bike(request, bike_id):
             
     else: return redirect('login')
 
+@login_required
+@csrf_protect
+def segments(request, id = 0):
+
+    context = {'page': 'index'}
+    
+    if id == 0:
+
+        try:
+            if time.time() >= request.session.get('expiry') - 3600:
+                    refresh_token(request)
+            
+            access_token = request.session.get('access')
+            headers = {'Authorization': f'Bearer {access_token}'}
+            response = requests.get(f"https://www.strava.com/api/v3/segments/starred", headers=headers)
+
+            if response.status_code == 200:
+                segments = response.json()
+            elif response.status_code == 429:
+                raise RetryError(response=response)
+            else:
+                response.raise_for_status()
+
+        except HTTPError as http_error:
+            if http_error.response.status_code == 404:
+                context['error'] = "Activity not found. This may be because it is another athletes activity"
+            else:
+                context['error'] = f"HTTP error: {http_error}"
+            return render(request, 'calc/strava/main.html', context)
+        except RetryError as retry_error:
+            context['error'] = f"Rate limit exceeded: {retry_error}"
+            return render(request, 'calc/strava/main.html', context)
+        else:
+            # for segment in segments:
+            #     for key, value in segment.items():
+            #         print(f"{key}: {value}")
+            #     print("\n\n")
+            context['segments'] = segments
+
+
+            return render(request, 'calc/strava/segments.html', context)
+    else:
+        try:
+            if time.time() >= request.session.get('expiry') - 3600:
+                    refresh_token(request)
+            
+            access_token = request.session.get('access')
+            headers = {'Authorization': f'Bearer {access_token}'}
+            response = requests.get(f"https://www.strava.com/api/v3/segments/{id}", headers=headers)
+
+            if response.status_code == 200:
+                segment = response.json()
+            elif response.status_code == 429:
+                raise RetryError(response=response)
+            else:
+                response.raise_for_status()
+
+        except HTTPError as http_error:
+            if http_error.response.status_code == 404:
+                context['error'] = "Activity not found. This may be because it is another athletes activity"
+            else:
+                context['error'] = f"HTTP error: {http_error}"
+            return render(request, 'calc/strava/main.html', context)
+        except RetryError as retry_error:
+            context['error'] = f"Rate limit exceeded: {retry_error}"
+            return render(request, 'calc/strava/main.html', context)
+        else:
+            print(segment)
+            
+            for key, value in segment.items():
+                print(f"{key}: {value}")
+
+
+            encoded_polyline =  polyline.decode(segment['map']['polyline'], 5)
+            points = []
+            for point in encoded_polyline:
+                points.append([point[0], point[1]])
+            context['segment'] = segment
+            context['polyline'] = points
+
+
+            return render(request, 'calc/strava/segment.html', context)
+        
+        
 

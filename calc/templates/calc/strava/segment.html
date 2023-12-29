@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+
+{% include "calc/head.html" %} 
+<html lang="en">
+<head>
+    <style>
+        #map {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+
+
+    {% if error %}
+    <div class="error">
+        <br>
+        <h4>{{error}}</h4>
+        <br><br>
+    </div>
+    {% endif %}
+
+
+
+    &emsp;&emsp;&emsp;<button onclick="window.location.href='/strava/segments'">Back</button>
+
+    <div class="main_div">
+
+        <h2><a href="https://www.strava.com/segments/{{segment.id}}">{{segment.name}}</a></h2>
+        Type: {{segment.activity_type}}<br>
+        Distance:  <span id="{{ segment.name }}distance"></span><br>
+        <script>
+            var distance = {{ segment.distance }};
+            var elementId = "{{ segment.name }}distance";
+            var element = document.getElementById(elementId);
+    
+            if (element) {
+                if (distance >= 2000) {
+                    element.innerText = (Math.round(distance / 100) / 10).toString() + "Km";
+                } else {
+                    element.innerText = distance.toString() + "m";
+                }
+            } 
+        </script>
+        Average Grade: {{segment.average_grade}}%
+        <img src="{{segment.elevation_profile}}">
+
+        <div id='map'></div>
+        <script>
+            var googleMapsKey = null;  // Placeholder, will be updated dynamically
+
+            function initMap() {
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: {{segment.start_latlng.0}}, lng: {{segment.start_latlng.1}} },
+                    zoom: 15
+                });
+
+                new google.maps.Marker({
+                    position: { lat: {{segment.start_latlng.0}}, lng: {{segment.start_latlng.1}} },
+                    map: map
+                });
+
+                py_polyline = {{polyline}};
+                console.log(py_polyline)
+                let py_Coords = [];
+                for (let i = 0; i < py_polyline.length; i += 1) {
+                    let lat = py_polyline[i][0];
+                    let lng = py_polyline[i][1];
+                    py_Coords.push({ 'lat': lat, 'lng': lng });
+                }
+
+                var route = new google.maps.Polyline({
+                    path: py_Coords,
+                    geodesic: true,
+                    strokeColor: '#946',
+                    strokeOpacity: 1.0,
+                    strokeWeight: 8
+                });
+
+                route.setMap(map);
+            }
+
+            // Fetch the Google Maps API key dynamically
+            function fetchGoogleMapsKey() {
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        if (xhr.status == 200) {
+                            var response = JSON.parse(xhr.responseText);
+                            googleMapsKey = response.google_maps_key;
+                            loadMapScript();
+                        }
+                    }
+                };
+                xhr.open("GET", "/get-google-maps-key/", true);
+                xhr.send();
+            }
+
+            // Load the map after the Google Maps API script is loaded
+            function loadMapScript() {
+                var script = document.createElement('script');
+                script.src = 'https://maps.googleapis.com/maps/api/js?key=' + googleMapsKey + '&libraries=geometry&callback=initMap';
+                document.body.appendChild(script);
+            }
+
+            // Call fetchGoogleMapsKey to dynamically fetch the Google Maps API key
+            fetchGoogleMapsKey();
+        </script>
+        <br><br>
+        PR: {{segment.athlete_segment_stats.pr_elapsed_time}}
+
+
+
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+        {% for item in segment %}
+            {{item}}<br>
+        {% endfor %}
+
+    </div>

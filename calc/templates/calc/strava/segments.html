@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+
+{% include "calc/head.html" %} 
+<html lang="en">
+
+<body>
+
+
+    {% if error %}
+    <div class="error">
+        <br>
+        <h4>{{error}}</h4>
+        <br><br>
+    </div>
+    {% endif %}
+    &emsp;&emsp;&emsp;<button onclick="window.location.href='/strava'">Back</button>
+
+    <div class="main_div">
+        {% for segment in segments %}
+        <button onclick="window.location.href='segments/{{segment.id}}'" style="width: 50%; text-align: left; padding: 9px;" name="segmentSelection" value = {{segment.id}}>
+        Name: {{ segment.name }}<br>
+        Distance: <span id="{{ segment.name }}distance"></span><br>
+        <script>
+            var distance = {{ segment.distance }};
+            var elementId = "{{ segment.name }}distance";
+            var element = document.getElementById(elementId);
+    
+            if (element) {
+                if (distance >= 2000) {
+                    element.innerText = (Math.round(distance / 100) / 10).toString() + "Km";
+                } else {
+                    element.innerText = distance.toString() + "m";
+                }
+            } 
+        </script>
+        </button><br>
+    {% endfor %}
+    
+
+
+    </div>
