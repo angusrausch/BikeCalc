@@ -294,6 +294,28 @@ def activity(request, activity_id):
                 else:
                     response.raise_for_status()
 
+                response = requests.get(f"https://www.strava.com/api/v3/activities/{activity_id}/kudos", headers=headers)
+
+                if response.status_code == 200:
+                    kudos_data = response.json()
+                elif response.status_code == 429:
+                    raise RetryError(response=response)
+                else:
+                    response.raise_for_status()
+
+                response = requests.get(f"https://www.strava.com/api/v3/activities/{activity_id}/comments", headers=headers)
+
+                if response.status_code == 200:
+                    comments_data = response.json()
+                elif response.status_code == 429:
+                    raise RetryError(response=response)
+                else:
+                    response.raise_for_status()
+
+                for comment in comments_data:
+                    for key, value in comment.items():
+                        print(f"{key}: {value}")
+
                 # # activity file
                 # print("TEST")
                 # headers = {'Authorization': f'Bearer {access_token}'}
@@ -345,6 +367,8 @@ def activity(request, activity_id):
                     'activity': activity_data,
                     'secret': {'mapbox': MAPBOX_SECRET_KEY, 'google': GOOGLEMAPS_SECRET_KEY},
                     'polyline': points,
+                    'kudos': kudos_data,
+                    'comments': comments_data,
                 }
                 return render(request, 'calc/strava/activity.html', context)
             

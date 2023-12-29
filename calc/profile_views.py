@@ -259,8 +259,7 @@ def table_view(request, table_name):
                     table_data_array.append( field_value)
 
                 full_table_array.append([id, table_data_array])
-            print(full_table_array)
-            print(headers)
+            
             context = {
                     'name': table_name,
                     'columns': headers,

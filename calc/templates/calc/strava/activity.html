@@ -10,6 +10,21 @@
             width: 100%;
             height: 400px;
         }
+        #kudos-window, #comments-window {
+            position: fixed;
+            width: 300px;
+            height: min-content;
+            background: white;
+            border: 1px solid black;
+            padding: 10px;
+            margin: auto;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 10;
+            display: none;
+        }   
     </style>
 </head>
 <body>
@@ -32,7 +47,64 @@
         </h4>
        <div style="padding: 0 20px;">
             {{activity.description}}
+            <br><br>
+            
+            <a href="#" id="kudos-link"><small>Kudos: {{kudos|length}}</small></a>&emsp;<a href="#" id="comments-link"><small>Comments: {{comments|length}}</small></a>
+             
+            <div id="kudos-window">
+                <h1>Kudos</h1>
+                <p>
+                    {% for kudo in kudos %}
+                        {{kudo.firstname}} {{kudo.lastname}}
+                        <br>
+                    {% endfor %}
+                </p>
+                <button id="close-button">Close</button>
+              </div>  
+
+              <div id="comments-window">
+                <h1>Comments</h1>
+                <p>
+                    {% for comment in comments %}
+                        {{comment.athlete.firstname}} {{comment.athlete.lastnaem}}: {{comment.text}}
+                        <br>
+                    {% endfor %}
+                </p>
+                <button id="comments-close-button">Close</button>
+              </div>        
+
        </div><br>
+       <script>
+        // Get the elements by their ID
+        var kudosLink = document.getElementById("kudos-link");
+        var kudosWindow = document.getElementById("kudos-window");
+        
+        var closeButton = document.getElementById("close-button");
+        // Show the pop-up window when the link is clicked
+        kudosLink.addEventListener("click", function(event) {
+          event.preventDefault();
+          kudosWindow.style.display = "block";
+        });
+        // Hide the pop-up window when the close button is clicked
+        closeButton.addEventListener("click", function() {
+          kudosWindow.style.display = "none";
+        });
+
+
+         // Get the elements by their ID
+        var commentsLink = document.getElementById("comments-link");
+        var commentsWindow = document.getElementById("comments-window");
+        var commentscloseButton = document.getElementById("comments-close-button");
+        // Show the pop-up window when the link is clicked
+        commentsLink.addEventListener("click", function(event) {
+          event.preventDefault();
+          commentsWindow.style.display = "block";
+        });
+        // Hide the pop-up window when the close button is clicked
+        commentscloseButton.addEventListener("click", function() {
+          commentsWindow.style.display = "none";
+        });
+      </script>     
         <div id='map'></div>
         <script>
             var googleMapsKey = null;  // Placeholder, will be updated dynamically
